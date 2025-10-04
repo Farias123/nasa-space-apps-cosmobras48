@@ -93,8 +93,8 @@ if __name__ == "__main__":
         # Loga o objeto mais próximo com um nível de alerta para destaque
         logger.warning(
             f"ALERTA DE PROXIMIDADE: O objeto '{closest_object.designation}' "
-            f"terá a menor aproximação em {closest_object.close_approach_date} "
-            f"a uma distância de {closest_object.distance_au} UA."
+            f"terá a maior aproximação em {closest_object.close_approach_date} "
+            f"a uma distância de {closest_object.distance_au} UA.\n"
         )
 
         for obj in objects:
