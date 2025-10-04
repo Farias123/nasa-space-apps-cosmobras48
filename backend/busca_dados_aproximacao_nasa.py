@@ -43,10 +43,6 @@ class CloseApproachObject:
     def from_list(cls, item: List[str]) -> 'CloseApproachObject':
         """Cria uma instância a partir da lista de dados da API."""
         return cls(
-            designation=item[0],
-            close_approach_date=item[3],
-            distance_au=item[4],
-            velocity_kms=item[7]
             designation=item[IDX_DESIGNATION],
             close_approach_date=item[IDX_CLOSE_APPROACH_DATE],
             distance_au=item[IDX_DISTANCE_AU],
@@ -84,7 +80,6 @@ def get_nasa_close_approach_data() -> Optional[List[CloseApproachObject]]:
     except requests.exceptions.RequestException as e:
         logger.error(f"Ocorreu um erro ao fazer a requisição para a API: {e}")
     except json.JSONDecodeError:
-        logger.error("Ocorreu um erro ao decodificar a resposta JSON.")
         logger.error(f"Ocorreu um erro ao decodificar a resposta JSON. Resposta recebida: {response.text}")
     
     return None
