@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  frontend:
+    image: cosmobras48/nasa-sac-frontend:latest
+    container_name: nasa-sac-frontend-ctnr
+    build:
+      context: ../..
+      dockerfile: ./infra/docker/frontend/Dockerfile
+    privileged: true
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '5'
+    command: [ "start" ]
+    ports:
+      - "3000:3000"
+    volumes:
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+      - ../../frontend/src:/home/cosmobras48/frontend/src
+      - ../../frontend/public:/home/cosmobras48/frontend/public
+    env_file:
+      - ./frontend/.frontend.env
+    restart: always
+    networks:
+      - default-net
+
+networks:
+  default-net:
+    driver: bridge
+
+volumes:
+  mongodb-data:
