@@ -13,15 +13,35 @@ dependencies = [
     "dependency-injector>=4.48.2",
     "fastapi>=0.118.0",
     "fastapi-filter>=2.0.1",
+    "loguru>=0.7.3",
     "mongoengine>=0.29.1",
     "pydantic>=2.11.10",
-    "pyyaml>=6.0.3",
     "requests>=2.32.5",
     "swagger-ui-py>=25.7.1",
+    "types-requests>=2.32.4.20250913",
     "uvicorn>=0.37.0",
     "polars>=0.20.31",
     "plotly>=5.22.0",
 ]
 
 [dependency-groups]
-dev = []
+dev = [
+    "coverage>=7.10.7",
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "ruff>=0.13.3",
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    '--strict-config',
+    '-ra',
+]
+pythonpath = [
+    'src',
+]
+testpaths = ['src']
+python_files = [
+    'test_*.py',
+    '*_test.py',
+]
