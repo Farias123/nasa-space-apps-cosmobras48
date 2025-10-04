@@ -1,0 +1,19 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "NASA-SAC back-end layer for the Cosmobras48 team's web platform" 
+readme = "README.md"
+requires-python = ">=3.12"
+
+authors =[
+    { name = "Guilherme Gonçalves (lwglg)", email = "lwglguilherme@gmail.com" },
+]
+
+dependencies = [
+    "fastapi>=0.118.0",
+    "requests>=2.32.5",
+    "uvicorn>=0.37.0",
+]
+
+[dependency-groups]
+dev = []
