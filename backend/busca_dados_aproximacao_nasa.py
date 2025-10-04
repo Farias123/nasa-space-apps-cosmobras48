@@ -25,6 +25,12 @@ DEFAULT_PARAMS = {
     'sort': 'date'       # Ordenar os resultados por data
 }
 
+# Índices dos dados retornados pela API para maior clareza
+IDX_DESIGNATION = 0
+IDX_CLOSE_APPROACH_DATE = 3
+IDX_DISTANCE_AU = 4
+IDX_VELOCITY_KMS = 7
+
 @dataclass
 class CloseApproachObject:
     """Representa os dados de um objeto em aproximação."""
@@ -41,6 +47,10 @@ class CloseApproachObject:
             close_approach_date=item[3],
             distance_au=item[4],
             velocity_kms=item[7]
+            designation=item[IDX_DESIGNATION],
+            close_approach_date=item[IDX_CLOSE_APPROACH_DATE],
+            distance_au=item[IDX_DISTANCE_AU],
+            velocity_kms=item[IDX_VELOCITY_KMS]
         )
 
 def get_nasa_close_approach_data() -> Optional[List[CloseApproachObject]]:
@@ -75,6 +85,7 @@ def get_nasa_close_approach_data() -> Optional[List[CloseApproachObject]]:
         logger.error(f"Ocorreu um erro ao fazer a requisição para a API: {e}")
     except json.JSONDecodeError:
         logger.error("Ocorreu um erro ao decodificar a resposta JSON.")
+        logger.error(f"Ocorreu um erro ao decodificar a resposta JSON. Resposta recebida: {response.text}")
     
     return None
 
