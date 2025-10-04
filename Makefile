@@ -9,7 +9,7 @@ RED     := $(shell tput -Txterm setaf 1)
 RESET   := $(shell tput -Txterm sgr0)
 
 # Comandos
-UV_RUN	:= uv run
+UV_BASE_CMD	:= uv --project ./backend/pyproject.toml
 
 # Constrói a documentação de cada script, visualizável via 'make' ou 'make help'
 # A documentação dee cada script é feita através de uma string começando por '\#\#'
@@ -84,13 +84,13 @@ help: ##@Outros Mostra esta documentação.
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
 format: ## Realiza a formatação do código-fonte em Python.
-	@$(UV_RUN) ./scripts/format.sh
+	@$(UV_BASE_CMD) run ./scripts/sh/format.sh
 
 lint: ## Realiza o linting do código-fonte em Python.
-	@$(UV_RUN) ./scripts/lint.sh
+	@$(UV_BASE_CMD) run ./scripts/sh/lint.sh
 
 test: ## Executa os testes automatizados via pytest, gerando relatório de cobertura.
-	@$(UV_RUN) ./scripts/test.sh
+	@$(UV_BASE_CMD) run ./scripts/sh/test.sh
 
 listsrvs: ## Lista todos os nomes de serviços declarados no YAML do Docker Compose, dado um env=<dev | prod> ambiente de infra
 	$(call compose_cmd, $(env), config --services)
