@@ -3,7 +3,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel, create_model
 
 
-D = TypeVar("M", bound=BaseModel)
+D = TypeVar("M", bound=BaseModel)  # type: ignore[valid-type, misc]
 
 
 def create_data_model(

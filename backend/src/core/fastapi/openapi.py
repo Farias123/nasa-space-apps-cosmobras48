@@ -25,8 +25,6 @@ def apply_openapi_schema(
 
         base_url = f"http://{'localhost' if hostname == '0.0.0.0' else hostname}:{port}/{config.server_api_root_path()}"
 
-        print("BASE URL" + base_url)
-
         openapi_schema = get_openapi(
             title=title,
             version=version,

@@ -30,15 +30,15 @@ def create_app() -> tuple[FastAPI, Container]:
     )
 
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
-    fastapi_app.container = container
-    fastapi_app.openapi = apply_openapi_schema(fastapi_app, wsconfig)
+    fastapi_app.__setattr__("container", container)
+    fastapi_app.__setattr__("openapi", apply_openapi_schema(fastapi_app, wsconfig))
 
     add_routers(
         fastapi_app,
         [cbtracking_api_router],
         api_version=wsconfig.server_api_root_version(),
     )
-    
+
     init_error_handlers(fastapi_app, wsconfig.server_sysadmin_contact())
 
     return fastapi_app, container
