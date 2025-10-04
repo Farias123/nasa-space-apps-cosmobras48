@@ -128,9 +128,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# Docker container volume data
-img_analysis_data/
-
-# Proofs of concept
-image_analysis_poc/
