@@ -28,7 +28,7 @@ Para criar o ambiente virtual Python localmente, na versão correta, via UV, exe
 ```bash
 cd backend                          # Ir para a raíz correta
 uv python install 3.12              # Instala a versão correta do Python
-uv venv --pytrthon 3.12             # Cria o diretório ".venv"
+uv venv --python 3.12             # Cria o diretório ".venv"
 source ./venv/bin/activate          # Monta o virtualenv
 uv install -r pyproject.toml        # Instala dependência de projeto
 ```
