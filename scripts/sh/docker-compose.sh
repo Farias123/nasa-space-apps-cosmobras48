@@ -8,9 +8,11 @@ function yamlpath() {
     case $ENVIRONMENT in
         dev|develop|development|desenvolvimento)
             echo "$INFRA_ROOT_PATH/$COMPOSE_YAML_BASENAME.yml" ;;
-        prod|production|production)
+        prod|production)
             echo "$INFRA_ROOT_PATH/$COMPOSE_YAML_BASENAME.yml" ;;
-        *) ;;
+        *) 
+            echo "Ambiente desconhecido: $ENVIRONMENT" >&2
+            exit 1 ;;
     esac 
 }
 
