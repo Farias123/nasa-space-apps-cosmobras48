@@ -77,6 +77,7 @@ class NumericalSimulation:
 
             date = solar_system_data["Mercury"]["dates"][step]
 
+
             meteor_dict[date] = {
                     "mass": mass_meteor,
                     "x": next_step[0],
@@ -84,8 +85,10 @@ class NumericalSimulation:
                     "z": next_step[2],
                     "vx": next_step[3],
                     "vy": next_step[4],
-                    "vz": next_step[5]
+                    "vz": next_step[5],
+                    "distance_earth": np.sqrt((next_step[0]-solar_system_data["Earth"]["x"][step])**2+(next_step[1]-solar_system_data["Earth"]["y"][step])**2+(next_step[2]-solar_system_data["Earth"]["z"][step])**2)
                 }
+
 
         return meteor_dict, solar_system_data
 
