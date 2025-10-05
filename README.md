@@ -1,6 +1,6 @@
 #  1. NASA Space Apps Challenge - Solução da equipe _Cosmobras-48_
 
-Plataforma web para monitoramento e simulação de corpos celestes no nosso sistema solar.
+Web platform built to monitor potential collisions of celestial bodies with the planet Earth, and also to perform asteroid trajectory simulation. Part of the submission requirements for the aforementioned 2025 Hackaton.
 
 ## 1.1. TOC
 
