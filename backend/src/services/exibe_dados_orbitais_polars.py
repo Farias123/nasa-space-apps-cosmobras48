@@ -2,17 +2,19 @@ import requests
 import re
 import polars as pl
 import plotly.graph_objects as go
+from typing import Optional
 
 
 def get_horizons_vectors(
-    target: str, start_time: str, stop_time: str
-) -> pl.DataFrame | None:
+    target: str, start_time: str, stop_time: str, step_size: str = "1d"
+) -> Optional[pl.DataFrame]:
     """Busca vetores de posição (X, Y, Z) da API HORIZONS da NASA usando Polars.
 
     Args:
         target: O nome ou ID do corpo celeste (ex: 'Apophis', '399' para Terra).
         start_time: Data de início no formato 'YYYY-MM-DD'.
         stop_time: Data de fim no formato 'YYYY-MM-DD'.
+        step_size: O intervalo entre os pontos de dados (ex: '1d', '1mo', '1y').
 
     Returns:
         Um DataFrame do Polars com as coordenadas X, Y, Z ou None em caso de erro.
@@ -29,7 +31,7 @@ def get_horizons_vectors(
         "CENTER": "@sun",
         "START_TIME": start_time,
         "STOP_TIME": stop_time,
-        "STEP_SIZE": "1d",
+        "STEP_SIZE": step_size,
         "VEC_TABLE": "2",
     }
 
@@ -247,13 +249,15 @@ def plot_orbits_3d(trajectories: dict[str, pl.DataFrame], dates: pl.Series):
 
 
 if __name__ == "__main__":
-    # Define o período da simulação
-    start = "2024-01-01"
-    end = "2025-01-01"
+    # --- PARÂMETROS DE VERIFICAÇÃO ---
+    # Foco na aproximação do Apophis em Abril de 2029
+    start = "2029-04-10"
+    end = "2029-04-16"
+    step = "1h"  # Passo de 1 hora para alta resolução
 
-    # Busca os dados para a Terra e para o asteroide Apophis
-    earth_df = get_horizons_vectors("399", start, end)
-    apophis_df = get_horizons_vectors("Apophis;", start, end)
+    # Busca os dados para a Terra e para o asteroide Apophis com o formato de ID que funciona
+    earth_df = get_horizons_vectors("399", start, end, step_size=step)
+    apophis_df = get_horizons_vectors('"DES= 2099942;"', start, end, step_size=step)
 
     if (
         earth_df is not None
@@ -261,9 +265,22 @@ if __name__ == "__main__":
         and apophis_df is not None
         and not apophis_df.is_empty()
     ):
-        # Monta o dicionário de trajetórias para plotagem
-        orbits_to_plot = {"Terra": earth_df, "Asteroide Apophis": apophis_df}
-        # Usa a segunda coluna (CalendarDate) para o slider.
-        plot_orbits_3d(orbits_to_plot, earth_df.get_column("CalendarDate"))
+        # Calcula a distância entre a Terra e o Apophis para cada ponto no tempo
+        distances = (
+            (earth_df["X"] - apophis_df["X"]) ** 2
+            + (earth_df["Y"] - apophis_df["Y"]) ** 2
+            + (earth_df["Z"] - apophis_df["Z"]) ** 2
+        ).sqrt()
+
+        # Encontra a distância mínima e a data correspondente
+        min_dist_au = distances.min()
+        min_dist_km = min_dist_au * 149597870.7
+        min_index = distances.arg_min()
+        closest_date = earth_df["CalendarDate"][min_index]
+
+        print("\n--- Verificação de Aproximação (Apophis 2029) ---")
+        print(f"Data da maior aproximação: {closest_date}")
+        print(f"Distância mínima calculada: {min_dist_au:.6f} AU ({min_dist_km:,.0f} km)")
+        print("----------------------------------------------------")
     else:
-        pass
+        print("Não foi possível obter os dados para verificação.")

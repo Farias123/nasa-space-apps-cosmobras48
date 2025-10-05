@@ -5,7 +5,7 @@ import json
 from typing import Optional, Dict
 import random
 
-def get_horizons_vectors(target: str, start_time: str, stop_time: str) -> Optional[pl.DataFrame]:
+def get_horizons_vectors(target: str, start_time: str, stop_time: str, step_size: str = '1d') -> Optional[pl.DataFrame]:
     """
     Busca vetores de posição (X, Y, Z) da API HORIZONS da NASA usando Polars.
 
@@ -13,6 +13,7 @@ def get_horizons_vectors(target: str, start_time: str, stop_time: str) -> Option
         target: O nome ou ID do corpo celeste (ex: 'Apophis', '399' para Terra).
         start_time: Data de início no formato 'YYYY-MM-DD'.
         stop_time: Data de fim no formato 'YYYY-MM-DD'.
+        step_size: O intervalo entre os pontos de dados (ex: '1d', '1mo', '1y').
 
     Returns:
         Um DataFrame do Polars com as coordenadas X, Y, Z ou None em caso de erro.
@@ -28,7 +29,7 @@ def get_horizons_vectors(target: str, start_time: str, stop_time: str) -> Option
         'CENTER': '@sun',
         'START_TIME': start_time,
         'STOP_TIME': stop_time,
-        'STEP_SIZE': '1d',
+        'STEP_SIZE': step_size,
         'VEC_TABLE': '2',
     }
 
@@ -111,20 +112,24 @@ def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filenam
     """
     plot_data = {}
     max_steps = 0
+    # Encontra o número máximo de passos entre todas as trajetórias primeiro
+    for name, df in trajectories.items():
+        if not df.is_empty():
+            max_steps = max(max_steps, len(df))
+
     for name, df in trajectories.items():
         if df.is_empty():
             continue
         
+        # Adiciona a lista de datas para CADA objeto
         plot_data[name] = {
             "x": df["X"].to_list(),
             "y": df["Y"].to_list(),
             "z": df["Z"].to_list(),
+            "dates": df["CalendarDate"].to_list(), # Adiciona datas individuais
             "color": df["color"][0],
             "size": df["size"][0],
         }
-        if "dates" not in plot_data:
-            plot_data["dates"] = df["CalendarDate"].to_list()
-            max_steps = len(plot_data["dates"])
 
     if not plot_data or max_steps == 0:
         print("Nenhum dado válido para plotar. Abortando a geração do HTML.")
@@ -240,13 +245,10 @@ def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filenam
             nameLabel.position.set(0, 0.03, 0); // Desloca um pouco acima do objeto
             body.add(nameLabel); // Anexa a etiqueta ao corpo celeste
 
-            const orbitPoints = [];
-            for(let i=0; i < bodyData.x.length; i++) {{
-                orbitPoints.push(new THREE.Vector3(bodyData.x[i], bodyData.y[i], bodyData.z[i]));
-            }}
-            const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+            // Cria uma geometria de linha vazia que será atualizada dinamicamente
+            const orbitGeometry = new THREE.BufferGeometry();
             const orbitMaterial = new THREE.LineBasicMaterial({{ color: color, opacity: 0.5, transparent: true }});
-            const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+            const orbit = new THREE.Line(orbitGeometry, orbitMaterial); // A linha da órbita
             scene.add(orbit);
 
             celestialObjects[name] = {{ body, orbit, data: bodyData }};
@@ -259,15 +261,41 @@ def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filenam
         let currentStep = 0;
         let isPlaying = false;
 
+        // Define o comprimento da trilha da órbita (em número de passos)
+        // 365 passos correspondem a 1 ano se o step_size for '1d'
+        const trailLength = 365;
+
         function updateScene(step) {{
             currentStep = Math.max(0, Math.min(step, {max_steps - 1}));
             slider.value = currentStep;
-            dateDisplay.textContent = `Data: ${{simData.dates[currentStep]}}`;
+
+            // Atualiza a data usando a Terra como referência, se disponível
+            if (simData['Terra'] && simData['Terra'].dates[currentStep]) {{
+                dateDisplay.textContent = `Data: ${{simData['Terra'].dates[currentStep]}}`;
+            }}
 
             for (const name in celestialObjects) {{
                 const obj = celestialObjects[name];
                 const data = obj.data;
-                obj.body.position.set(data.x[currentStep], data.y[currentStep], data.z[currentStep]);
+                // Garante que não tentemos acessar um índice que não existe para este objeto específico
+                const stepForObject = Math.min(currentStep, data.x.length - 1);
+                
+                const x = data.x[stepForObject];
+                const y = data.y[stepForObject];
+                const z = data.z[stepForObject];
+                obj.body.position.set(x, y, z);
+
+                // Atualiza a trilha da órbita
+                const trailStart = Math.max(0, stepForObject - trailLength);
+                const trailEnd = stepForObject + 1;
+
+                const orbitPoints = [];
+                for (let i = trailStart; i < trailEnd; i++) {{
+                    orbitPoints.push(new THREE.Vector3(data.x[i], data.y[i], data.z[i]));
+                }}
+                
+                obj.orbit.geometry.setFromPoints(orbitPoints);
+                obj.orbit.geometry.computeBoundingSphere(); // Necessário para a visibilidade
             }}
         }}
 
@@ -365,6 +393,47 @@ def get_asteroid_targets(limit: int = 10) -> Dict:
         print(f"Erro ao buscar a lista de asteroides: {e}")
         return {}
 
+def get_closest_approach_target(days_ahead: int = 60) -> Dict:
+    """
+    Busca o único objeto com a maior aproximação da Terra em um determinado período.
+
+    Args:
+        days_ahead: O número de dias no futuro para buscar a aproximação.
+
+    Returns:
+        Um dicionário contendo o alvo de maior aproximação, ou um dicionário vazio.
+    """
+    print(f"\nBuscando objeto com maior aproximação nos próximos {days_ahead} dias...")
+    api_url = "https://ssd-api.jpl.nasa.gov/cad.api"
+    params = {
+        'date-min': 'now',
+        'date-max': f'+{days_ahead}',
+        'dist-max': '0.1AU',
+        'sort': 'dist'       # Ordena pelo mais próximo primeiro
+    }
+
+    try:
+        response = requests.get(api_url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if "data" not in data or not data["data"]:
+            print("Nenhum objeto com aproximação notável encontrado no período.")
+            return {}
+
+        # Como a API já está ordenada por distância ('sort=dist'), o primeiro item é o mais próximo.
+        closest_item = data["data"][0]
+        name = closest_item[0] # Campo 'des' (designation)
+        target_id = f"{name};"
+
+        print(f"Objeto de maior aproximação encontrado: {name}")
+        return {
+            name: {'id': target_id, 'color': 0xff00ff, 'size': 0.012} # Cor magenta para destaque
+        }
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar objeto de maior aproximação: {e}")
+        return {}
+
 if __name__ == "__main__":
     # --- PARÂMETROS DA SIMULAÇÃO ---
     start_date = '2024-01-01'
@@ -372,29 +441,29 @@ if __name__ == "__main__":
     output_file = "simulacao_orbita_threejs.html"
     
     # 1. Define os alvos principais (planetas)
-    planet_targets = {
+    all_targets = {
         'Mercurio': {'id': '199', 'color': 0x8c8c8c, 'size': 0.015},
         'Venus':    {'id': '299', 'color': 0xd8a868, 'size': 0.02},
         'Terra':    {'id': '399', 'color': 0x00aaff, 'size': 0.022},
         'Marte':    {'id': '499', 'color': 0xff5733, 'size': 0.018},
-        'Apophis':  {'id': 'Apophis;', 'color': 0xffffff, 'size': 0.01}, # Asteroide notável
         'Jupiter':  {'id': '599', 'color': 0xc99039, 'size': 0.04},
         'Saturno':  {'id': '699', 'color': 0xe3d9b1, 'size': 0.035},
         'Urano':    {'id': '799', 'color': 0xa2e465, 'size': 0.03},
         'Netuno':   {'id': '899', 'color': 0x3f54ba, 'size': 0.03},
         'Plutao':   {'id': '999', 'color': 0xbfb5a6, 'size': 0.01},
+        # Asteroides adicionados manualmente para garantir a renderização
+        'Apophis':   {'id': '"DES= 2099942;"', 'color': 0xffffff, 'size': 0.01},
+        '2025 SP23': {'id': '"DES= 54363842;"', 'color': 0xffa500, 'size': 0.01}, # Laranja
+        '2025 T0':   {'id': '"DES= 54363854;"', 'color': 0x00ff00, 'size': 0.01}, # Verde
+        '2025 TU1':  {'id': '"DES= 54363865;"', 'color': 0x00ffff, 'size': 0.01}, # Ciano
+        '2019 UT6':  {'id': '"DES= 54002019;"', 'color': 0xff00ff, 'size': 0.01}, # Magenta
+        '2025 SM15': {'id': '"DES= 54363831;"', 'color': 0xffff00, 'size': 0.01}, # Amarelo
     }
-
-    # 2. Busca alvos de asteroides dinamicamente da API
-    asteroid_targets = get_asteroid_targets(limit=10)
-
-    # 3. Combina os alvos
-    all_targets = {**planet_targets, **asteroid_targets}
 
     # --- EXECUÇÃO ---
     trajectories_data = {}
     for name, params in all_targets.items():
-        df = get_horizons_vectors(params['id'], start_date, end_date)
+        df = get_horizons_vectors(params['id'], start_date, end_date, step_size='1d') # Usando passo diário
         if df is not None and not df.is_empty():
             trajectories_data[name] = {
                 "dataframe": df, "color": params['color'], "size": params['size']
