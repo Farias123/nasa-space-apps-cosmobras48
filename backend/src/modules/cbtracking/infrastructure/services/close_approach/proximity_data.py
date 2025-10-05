@@ -35,7 +35,6 @@ def get_nasa_close_approach_data(
         # Faz a requisição GET para a API com os parâmetros definidos
         filters = _merge_filter_objects(incoming_filters)
 
-        logger.info(dict(filters))
         response = requests.get(API_URL, params=dict(filters))
 
         # Verifica se a requisição foi bem-sucedida (código de status 200)
