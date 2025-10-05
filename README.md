@@ -38,7 +38,7 @@ Na fase inicial de deliberações, foi proposta a seguite arquitetura, de modo a
 
 ![architecture](./resources/docs/images/nasa-sac-proposed-architecture.png)
 
-No final, por questões de tempo restrito, diferentes níveis de experiência prática entre os integrantes do time de desenvolvedores e risco de __overengineering_, a plataforma de software consiste dos seguintes serviços, orquestrados via Docker Compose, declarados em um [manifesto](./infra/docker/compose.yml) YML:
+No final, por questões de tempo restrito, diferentes níveis de experiência prática entre os integrantes do time de desenvolvedores e risco de [_overengineering_](https://en.wikipedia.org/wiki/Overengineering), a plataforma de software consiste dos seguintes serviços, orquestrados via Docker Compose, declarados em um [manifesto](./infra/docker/compose.yml) YML:
 
 - `backend`: Um servidor de aplicação HTTP (back-end), escrito em Python, expondo uma API RESTful construída usando FastAPI;
 - `frontend`: Uma interface de usuário (front-end), escrita em TypeScript, rodando sobre Node.js, utilizando a biblioteca Vite.js para construção de componentes;
