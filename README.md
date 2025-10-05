@@ -7,7 +7,7 @@ Plataforma web para monitoramento e simulação de corpos celestes no nosso sist
 - [1. NASA Space Apps Challenge - Solução da equipe _Cosmobras-48_](#1-nasa-space-apps-challenge---solução-da-equipe-cosmobras-48)
   - [1.1. TOC](#11-toc)
   - [1.2. Preliminares](#12-preliminares)
-  - [1.3. Arquitetura da solução (wiP)](#13-arquitetura-da-solução-wip)
+  - [1.3. Arquitetura da solução (WiP)](#13-arquitetura-da-solução-wip)
   - [1.4. Manipulação do projeto](#14-manipulação-do-projeto)
     - [1.4.1. Instalação inicial de dependências](#141-instalação-inicial-de-dependências)
       - [1.4.1.1. Backend](#1411-backend)
@@ -32,7 +32,7 @@ Esse projeto foi desenvolvido utilizando as seguintes ferramentas:
 - [GNU Make](https://www.gnu.org/software/make/): v4.3 ou superior.
 
 
-## 1.3. Arquitetura da solução (wiP)
+## 1.3. Arquitetura da solução (WiP)
 
 Na fase inicial de deliberações, foi proposta a seguite arquitetura, de modo a atender os casos de uso propostos no Hackaton:
 
