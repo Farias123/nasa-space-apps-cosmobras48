@@ -6,7 +6,7 @@ from fastapi.exceptions import (
 )
 from fastapi.responses import PlainTextResponse
 from starlette.responses import JSONResponse
-
+from pydantic import ValidationError as PydanticValidationError
 
 def init_error_handlers(app: FastAPI, admin_email: str):
     """Declare the handlers to catch different types of exceptions."""
@@ -27,6 +27,21 @@ def init_error_handlers(app: FastAPI, admin_email: str):
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_error_handler(
+        req: Request, exc: RequestValidationError
+    ):
+        status_code = status.HTTP_400_BAD_REQUEST
+
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "status": status_code,
+                "type": type(exc).__name__,
+                "details": {"message": str(exc), "errors": exc.errors()},
+            },
+        )
+
+    @app.exception_handler(PydanticValidationError)
+    async def pydantic_validation_error_handler(
         req: Request, exc: RequestValidationError
     ):
         status_code = status.HTTP_400_BAD_REQUEST
