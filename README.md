@@ -6,153 +6,148 @@ Plataforma web para monitoramento e simulação de corpos celestes no nosso sist
 
 - [1. NASA Space Apps Challenge - Solução da equipe _Cosmobras-48_](#1-nasa-space-apps-challenge---solução-da-equipe-cosmobras-48)
   - [1.1. TOC](#11-toc)
-  - [1.2. Preliminares](#12-preliminares)
-  - [1.3. Arquitetura da solução (WiP)](#13-arquitetura-da-solução-wip)
-  - [1.4. Manipulação do projeto](#14-manipulação-do-projeto)
-    - [1.4.1. Instalação inicial de dependências](#141-instalação-inicial-de-dependências)
+  - [1.2. Preliminaries](#12-preliminaries)
+  - [1.3. Proposed architecture (WiP)](#13-proposed-architecture-wip)
+  - [1.4. Project Management](#14-project-management)
+    - [1.4.1. Dependency Installation](#141-dependency-installation)
       - [1.4.1.1. Backend](#1411-backend)
       - [1.4.1.2. Frontend](#1412-frontend)
     - [1.4.2. Startup](#142-startup)
     - [1.4.3. Shutdown](#143-shutdown)
   - [1.5. TL;DR](#15-tldr)
-  - [1.6. O que deseja fazer?](#16-o-que-deseja-fazer)
+  - [1.6. What do you want to do?](#16-what-do-you-want-to-do)
 
-## 1.2. Preliminares
+## 1.2. Preliminaries
 
-Esse projeto foi desenvolvido utilizando as seguintes ferramentas:
+This project was developed using the following tools:
 
-- Python, versão 3.12.9 ou superior:
-    - UV Package Manager: Consome os arquivos [`pyproject.toml`](./pyproject.toml) e [`uv.lock`](./uv.lock) para instalar as dependências. Instruções para a instalação do gerenciador encontram-se [aqui](https://docs.astral.sh/uv/getting-started/installation/);
-- Node.js, versão 22.13.0 ou superior:
-    - [Node Version Manager (`nvm`)](https://github.com/nvm-sh/nvm): v2.2.17 ou superior;
-    - [PNPM Package Manager (`pnpm`)](https://pnpm.io/pt/): v10.17.1 ou superior;
-- [Docker Engine](https://docs.docker.com/engine/install/ubuntu/): v28.0.1 ou superior:
-    - [Comando `docker` sem ser `sudo`](https://docs.docker.com/engine/install/linux-postinstall/). Opcional;
-    - [Docker Compose](https://docs.docker.com/compose/install/linux/): v2.29.7-desktop.1 ou superior;
-- [GNU Make](https://www.gnu.org/software/make/): v4.3 ou superior.
+- Python, version 3.12.9 or higher:
+  - UV Package Manager: Consumes the [`pyproject.toml`](./pyproject.toml) and [`uv.lock`](./uv.lock) files to install dependencies. Instructions for installing the manager can be found [here](https://docs.astral.sh/uv/getting-started/installation/);
+- Node.js, version 22.13.0 or higher:
+- [Node Version Manager (`nvm`)](https://github.com/nvm-sh/nvm): v2.2.17 or higher;
+  - [PNPM Package Manager (`pnpm`)](https://pnpm.io/pt/): v10.17.1 or higher;
+  -  [Docker Engine](https://docs.docker.com/engine/install/ubuntu/): v28.0.1 or higher:
+- [`docker` command without being `sudo`](https://docs.docker.com/engine/install/linux-postinstall/). Optional;
+  - [Docker Compose](https://docs.docker.com/compose/install/linux/): v2.29.7-desktop.1 or higher;
+  - [GNU Make](https://www.gnu.org/software/make/): v4.3 or higher.
 
+## 1.3. Proposed architecture (WiP)
 
-## 1.3. Arquitetura da solução (WiP)
-
-Na fase inicial de deliberações, foi proposta a seguite arquitetura, de modo a atender os casos de uso propostos no Hackaton:
+In the initial deliberation phase, the following architecture was proposed to meet the use cases proposed at the Hackathon:
 
 ![architecture](./resources/docs/images/nasa-sac-proposed-architecture.png)
 
-No final, por questões de tempo restrito, diferentes níveis de experiência prática entre os integrantes do time de desenvolvedores e risco de [_overengineering_](https://en.wikipedia.org/wiki/Overengineering), a plataforma de software consiste dos seguintes serviços, orquestrados via Docker Compose, declarados em um [manifesto](./infra/docker/compose.yml) YML:
+Ultimately, due to time constraints, varying levels of practical experience among the development team members, and the risk of overengineering, the software platform consists of the following services, orchestrated via Docker Compose and declared in a YML manifesto:
 
-- `backend`: Um servidor de aplicação HTTP (back-end), escrito em Python, expondo uma API RESTful construída usando FastAPI;
-- `frontend`: Uma interface de usuário (front-end), escrita em TypeScript, rodando sobre Node.js, utilizando a biblioteca Vite.js para construção de componentes;
-- `database`: Um servidor de banco de dados não-relacional MongoDB;
-- `mongo-express`: Um serviço para monitoramento e manipulação do banco de dados, acessível pelo navegador (Mongo Express)
+- `backend`: An HTTP application server (backend), written in Python, exposing a RESTful API built using FastAPI;
+- `frontend`: A user interface (frontend), written in TypeScript, running on Node.js, using the Vite.js library for building components;
+- `database`: A non-relational MongoDB database server;
+- `mongo-express`: A service for monitoring and manipulating the database, accessible via the browser (Mongo Express).
 
 > [!IMPORTANT]
-> Por questões de restrição de tempo, o serviço `database` não foi integrado ao `backend`, de modo a implementar os casos de uso associados à manipulação do dashboard de monitoramento de asteróides (e.g. favoritação de cards por usuário, etc.). Com efeito, o cerne do projeto (a base de código usada para gerar a demo submetidda) encontra-se em `backend`;
-> 
-> A interface de usuario em `frontend` está funcional, porém não integrada com a API RESTful servida por `backend`, pelo mesmo motivo.
+> Due to time constraints, the database service was not integrated into the backend to implement the use cases associated with manipulating the asteroid monitoring dashboard (e.g., favoriting cards by user, etc.). In fact, the core of the project (the codebase used to generate the submitted demo) is in the backend;
+>
+> The frontend user interface is functional, but not integrated with the RESTful API served by the backend, for the same reason.
 
-
-Segue abaixo uma representação esquemática:
+Below is a schematic representation:
 
 ![topology](./resources/docs/images/docker-topology.png)
 
-## 1.4. Manipulação do projeto
+## 1.4. Project Management
 
-### 1.4.1. Instalação inicial de dependências
+### 1.4.1. Dependency Installation
 
 #### 1.4.1.1. Backend
 
-Para criar o ambiente virtual Python localmente, na versão correta, via UV, execute no terminal: 
+To create the Python virtual environment locally, in the correct version, via UV, run in the terminal:
 
 ```bash
-cd backend                                  # Ir para a raíz correta
-uv python install 3.12                      # Instala a versão correta do Python
-uv venv --python 3.12                       # Cria o diretório ".venv"
-source ./venv/bin/activate                  # Monta o virtualenv
-uv pip install -r pyproject.toml            # Instala dependência de projeto
+cd backend                                  # Go to the backend root
+uv python install 3.12                      # Install the correct version of Python
+uv venv --python 3.12                       # Create the virtual enviroment in ".venv" folder
+source ./venv/bin/activate                  # Activate the enviroment
+uv pip install -r pyproject.toml            # Install project dependencies
 ```
 
-De modo a gerenciar pacotes individualmente, basta executar na raíz do projeto,
+In order to manage packages individually, simply run at the root of the project,
 
 ```bash
-uv --project backend/pyproject.toml [add | remove] [package-name]           # Instala (ou remove) package de produção
-uv --project backend/pyproject.toml [add | remove] --dev [package-name]     # Instala (ou remove) package de desenvolvimento
+uv --project backend/pyproject.toml [add | remove] [package-name]           # Install (or remove) a single production package
+uv --project backend/pyproject.toml [add | remove] --dev [package-name]     # Install (or remove) a single development package
 ```
 
 #### 1.4.1.2. Frontend
 
-Para criar uma instalação local de dependências do Node.js, basta executar os seguintes comandos, na raíz do projeto:
+To create a local installation of Node.js dependencies, simply run the following commands at the project root:
 
 ```bash
-nvm install lts && npm i -g pnpm@latest     # Instala a versão LTS do Node.js e também o gerenciador de pacotes PNPM
-pnpm --prefix frontend install              # Instala as dependências de projeto
+nvm install lts && npm i -g pnpm@latest     # Install the LTS version of Node.js and the PNPM package manager
+pnpm --prefix frontend install              # Install project packages
 ```
 
-De modo a gerenciar pacotes individualmente, basta executar na raíz do projeto,
+In order to manage packages individually, simply run at the root of the project,
 
 ```bash
-pnpm --prefix frontend [add | remove] [package-name] # Instala (ou remove) pacotes
+pnpm --prefix frontend [add | remove] [package-name] # Install (or remove) packages
 ```
 
 ### 1.4.2. Startup
 
-
-Através do `make`, via scripts de automação do Docker Compose implementados em um [Makefile](./Makefile), na raíz do projeto. Para conferir a documentação de cada script, basta executar no terminal
+Through `make`, via Docker Compose automation scripts implemented in a [Makefile](./Makefile), at the root of the project. To check the documentation for each script, simply run it in the terminal
 
 ```bash
-make                                # Sem nenhum comando, executa o fallback 'help'
-make help                           # Explicitamente, mostra a documentação
+make                                # Without any command, prints documentation (fallback - make help)
+make help                           # Prints explicitly the documentation for each command
 ```
 
-Considerando uma instalação inicial, na raíz do projeto, execute os seguintes comandos:
+Considering an initial installation, at the root of the project, run the following commands:
 
 ```bash
-$ make build                                    # Realiza o build das imagens de todos os serviços, em ./infra/docker/[nome-do-serviço]/Dockerfile
-$ make start c=database                         # Inicia o container do MongoDB
-$ make start c=mongo-express                    # Inicia o container do Mongo Express
-$ make start c=frontend                         # Inicia o container do frontend
-$ make start c=backend                          # Inicia o container do backend
+$ make build                                    # Perform imagem building of all services' images, each one at ./infra/docker/[service-name]/Dockerfile
+$ make start c=database                         # Start MongoDB container
+$ make start c=mongo-express                    # Start Mongo Express service container
+$ make start c=frontend                         # Start backend container
+$ make start c=backend                          # Start backend container
 ```
 
 > [!NOTE]
-> Para se certificar de que as imagens foram geradas pelo processo de build, basta executar o comando `docker image ls`.
-> 
-> Para se certificar de que os contêineres foram de fato devidamente iniciados e na escuta das portas corretas, basta executar o comando `make ps `.
-> 
-> Para ver os logs de um conteiner específico, execute `make logs c=[nome-do-serviço]`.
-
+> To ensure that the images were generated by the build process, simply run the `docker image ls` command.
+>
+> To ensure that the containers were actually started correctly and listening on the correct ports, simply run the `make ps` command.
+>
+> To view the logs for a specific container, run `make logs c=[service-name]`.
 
 > [!IMPORTANT]
-> A documentação da API RESTful pode ser acessada, via browser, em [`http://localhost:8001/api/docs`](http://localhost:8001/api/docs).
+> The RESTful API documentation can be accessed via browser at [`http://localhost:8001/api/docs`](http://localhost:8001/api/docs). >
+> Exploratory testing of the RESTful API can be conducted using a Postman collection (JSON file), available at [`./resources/testing`](./resources/testing/cosmobras-48-nasa-sac-api.postman_collection.json).
 >
-> Testes exploratório da API RESTful podem ser conduzidos, mediante uma _collection_ do Postman (arquivo JSON), disponível em [`./resources/testing`](./resources/testing/cosmobras-48-nasa-sac-api.postman_collection.json).
-> 
-> A interface de usuario em `frontend` está funcional, porém não integrada com a API RESTful servida por `backend`.
+> The user interface in the `frontend` is functional, but not integrated with the RESTful API served by the `backend`.
 
 
 ### 1.4.3. Shutdown
 
-Similarmente, para ambos os ambientes, de modo a encerrar a execução de todos os contêineres, basta rodar:
+Similarly, for both environments, in order to stop all containers from running, simply run:
 
 ```bash
-make stop           # Interrompe todos os contêineres
-make clean          # Opcional. Remove os contêineres e a network associadas aos serviços do ambiente
+make stop           # Shutdown all containers
+make clean          # Optional. Remove all containers and associated networks.
 ```
 
 
 ## 1.5. TL;DR
 
-A equipe [Cosmobras-48](https://www.spaceappschallenge.org/2025/find-a-team/cosmobras-48/?tab=members) é composta por:
+The [Cosmobras-48](https://www.spaceappschallenge.org/2025/find-a-team/cosmobras-48/?tab=members) team is composed of:
 
 - **Damares do Socorro Gonçalves Gaia** (`@damaresgaia`) - frontend
-- **Giordano Bruno Ribeiro Chaves Alves** (`@gio_alves`) - backend/integrações/simulações
-- **Guilherme Lima Gonçalves** (`@lwglg`) - backend/integrações
-- **Henrique de Lima Schweitzer** (`@henrique.schweitzer`) - backend/simulações
-- **Vitor Costa Farias** (`@vcfarias` - _Team Owner_) - backend/simulações
+- **Giordano Bruno Ribeiro Chaves Alves** (`@gio_alves`) - backend/simulations/integrations
+- **Guilherme Lima Gonçalves** (`@lwglg`) - backend/integrations
+- **Henrique de Lima Schweitzer** (`@henrique.schweitzer`) - backend/integrations
+- **Vitor Costa Farias** (`@vcfarias` - _Team Owner_) - backend/simulations
 
-Qualquer esclarecimento acerca do projeto pode ser feito entrando em contato com os mesmos.
+Any questions about the project can be asked by contacting them.
 
---- 
+---
 
-## 1.6. O que deseja fazer?
+## 1.6. What do you want to do?
 
-- [Voltar ao topo](#11-toc)
+- [Back to top](#11-toc)
