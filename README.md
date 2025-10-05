@@ -136,7 +136,7 @@ make clean          # Optional. Remove all containers and associated networks.
 
 ## 1.5. Demos
 
-- [YouTube video](https://www.youtube.com/watch?v=CxnB1gHBMoY): The front-end application, that renders the asteroid monitoring dashboard.
+- [YouTube video](https://www.youtube.com/watch?v=ZFDoqMSZjqI): The front-end application, that renders the asteroid monitoring dashboard.
 
 
 ## 1.6. TL;DR
