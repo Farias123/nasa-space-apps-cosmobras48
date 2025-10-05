@@ -4,7 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { ThreatLevel } from '@/types/asteroid';
 import { Filter } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/helpers/utils';
 
 interface FilterSidebarProps {
   selectedThreats: ThreatLevel[];
