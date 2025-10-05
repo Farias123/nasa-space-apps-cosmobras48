@@ -128,3 +128,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+<<<<<<< HEAD
+=======
+
+# Docker container volume data
+img_analysis_data/
+
+# Proofs of concept
+image_analysis_poc/
+>>>>>>> c6c4a40 (chore: add project files)

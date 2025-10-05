@@ -21,7 +21,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
  
 COPY ./frontend/src ./src
-COPY ./frontend/src ./public
+COPY ./frontend/public ./public
 COPY ./frontend/tsconfig.json ./tsconfig.json
 
 EXPOSE 3000

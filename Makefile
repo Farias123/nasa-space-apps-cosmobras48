@@ -9,7 +9,11 @@ RED     := $(shell tput -Txterm setaf 1)
 RESET   := $(shell tput -Txterm sgr0)
 
 # Comandos
+<<<<<<< HEAD
 UV_BASE_CMD	:= uv --project ./backend/pyproject.toml
+=======
+UV_RUN	:= uv run
+>>>>>>> c6c4a40 (chore: add project files)
 
 # Constrói a documentação de cada script, visualizável via 'make' ou 'make help'
 # A documentação dee cada script é feita através de uma string começando por '\#\#'
