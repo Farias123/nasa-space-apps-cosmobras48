@@ -1,4 +1,4 @@
-import { Asteroid } from "@/types/asteroid";
+import { CelestialBodyCloseApproachData } from "@/types/asteroid";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Line } from "@react-three/drei";
 
 interface TrajectoryViewProps {
-  asteroid: Asteroid | null;
+  asteroid: CelestialBodyCloseApproachData | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -26,18 +26,21 @@ export const TrajectoryView = ({
 }: TrajectoryViewProps) => {
   if (!asteroid) return null;
 
-  // Dados simplificados de órbita
+  // Dados simplificados de órbita baseados na distância AU
+  const distanceAu = parseFloat(asteroid.distance_au);
   const orbitData = {
-    perihelion: (asteroid.distance * 0.7).toFixed(2),
-    aphelion: (asteroid.distance * 1.3).toFixed(2),
+    perihelion: (distanceAu * 0.7).toFixed(2),
+    aphelion: (distanceAu * 1.3).toFixed(2),
     eccentricity: (Math.random() * 0.3 + 0.1).toFixed(3),
     inclination: (Math.random() * 15 + 5).toFixed(1),
-    period: (asteroid.distance * 0.5).toFixed(1),
+    period: (distanceAu * 0.5).toFixed(1),
   };
 
-  const a = Math.max(0.5, Math.min(asteroid.distance * 2, 4));
-  const b = Math.max(0.4, Math.min(asteroid.distance * 1.6, 3.5));
-  const asteroidRadius = Math.max(0.05, Math.min(asteroid.size / 1000, 0.6));
+  const a = Math.max(0.5, Math.min(distanceAu * 2, 4));
+  const b = Math.max(0.4, Math.min(distanceAu * 1.6, 3.5));
+  // Estimativa de tamanho baseada na velocidade (dados não disponíveis no backend)
+  const estimatedSize = Math.max(50, parseFloat(asteroid.velocity_kms) * 10);
+  const asteroidRadius = Math.max(0.05, Math.min(estimatedSize / 1000, 0.6));
 
   const ellipsePoints = useMemo(() => {
     const points: [number, number, number][] = [];
@@ -75,7 +78,7 @@ export const TrajectoryView = ({
             Trajetória Orbital
           </DialogTitle>
           <DialogDescription>
-            Visualização da órbita e trajetória do asteroide {asteroid.name}
+            Visualização da órbita e trajetória do asteroide {asteroid.designation}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +118,7 @@ export const TrajectoryView = ({
                   <MapPin className="h-4 w-4 text-primary" />
                   <span className="text-sm">Periélio</span>
                 </div>
-                <p className="text-xl font-bold">{orbitData.perihelion}M km</p>
+                <p className="text-xl font-bold">{orbitData.perihelion} AU</p>
               </div>
 
               <div className="glass-card p-4 space-y-1">
@@ -123,7 +126,7 @@ export const TrajectoryView = ({
                   <MapPin className="h-4 w-4 text-primary" />
                   <span className="text-sm">Afélio</span>
                 </div>
-                <p className="text-xl font-bold">{orbitData.aphelion}M km</p>
+                <p className="text-xl font-bold">{orbitData.aphelion} AU</p>
               </div>
 
               <div className="glass-card p-4 space-y-1">
@@ -153,10 +156,10 @@ export const TrajectoryView = ({
               <div className="glass-card p-4 space-y-1">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Tipo de Órbita</span>
+                  <span className="text-sm">Distância Atual</span>
                 </div>
                 <Badge className="bg-accent/20 text-accent mt-1">
-                  {asteroid.orbit}
+                  {asteroid.distance_au} AU
                 </Badge>
               </div>
             </div>
@@ -176,20 +179,20 @@ export const TrajectoryView = ({
                   Próxima Aproximação:
                 </span>
                 <span className="font-semibold text-warning">
-                  {new Date(asteroid.nextApproach).toLocaleDateString("pt-BR")}
+                  {new Date(asteroid.close_approach_date).toLocaleDateString("pt-BR")}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
                   Distância Mínima:
                 </span>
-                <span className="font-semibold">{asteroid.distance}M km</span>
+                <span className="font-semibold">{asteroid.distance_au} AU</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
                   Velocidade Relativa:
                 </span>
-                <span className="font-semibold">{asteroid.velocity} km/s</span>
+                <span className="font-semibold">{asteroid.velocity_kms} km/s</span>
               </div>
             </div>
           </div>

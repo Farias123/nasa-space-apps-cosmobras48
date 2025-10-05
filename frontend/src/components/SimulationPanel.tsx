@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Asteroid } from '@/types/asteroid';
+import { CelestialBodyCloseApproachData } from '@/types/asteroid';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import { Activity, Target, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SimulationPanelProps {
-  asteroid: Asteroid | null;
+  asteroid: CelestialBodyCloseApproachData | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -28,7 +28,7 @@ export const SimulationPanel = ({
 }: SimulationPanelProps) => {
   const [impactAngle, setImpactAngle] = useState(45);
   const [impactVelocity, setImpactVelocity] = useState(
-    asteroid?.velocity || 20
+    asteroid ? parseFloat(asteroid.velocity_kms) : 20
   );
   const [simulationRun, setSimulationRun] = useState(false);
   const [results, setResults] = useState<{
@@ -40,16 +40,19 @@ export const SimulationPanel = ({
 
   if (!asteroid) return null;
 
+  // Estimativa de tamanho baseada na velocidade (dados não disponíveis no backend)
+  const estimatedSize = Math.max(50, parseFloat(asteroid.velocity_kms) * 10);
+
   const runSimulation = () => {
     // Cálculos simplificados de simulação
     const craterDiameter = Math.round(
-      (asteroid.size * impactVelocity * Math.sin((impactAngle * Math.PI) / 180)) / 10
+      (estimatedSize * impactVelocity * Math.sin((impactAngle * Math.PI) / 180)) / 10
     );
     const affectedArea = Math.round(Math.PI * Math.pow(craterDiameter * 2, 2));
     const energyRelease = Math.round(
-      (asteroid.size / 100) * Math.pow(impactVelocity, 2) * 0.5
+      (estimatedSize / 100) * Math.pow(impactVelocity, 2) * 0.5
     );
-    const tsunamiRisk = asteroid.size > 500 && impactVelocity > 15;
+    const tsunamiRisk = estimatedSize > 500 && impactVelocity > 15;
 
     setResults({
       craterDiameter,
@@ -70,7 +73,7 @@ export const SimulationPanel = ({
           </DialogTitle>
           <DialogDescription>
             Ajuste os parâmetros para simular cenários de impacto do asteroide{' '}
-            {asteroid.name}
+            {asteroid.designation}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,7 +122,7 @@ export const SimulationPanel = ({
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">
-                Velocidade atual do asteroide: {asteroid.velocity} km/s
+                Velocidade atual do asteroide: {asteroid.velocity_kms} km/s
               </p>
             </div>
           </div>
