@@ -1,10 +1,10 @@
-from bdb import effective
-
 import rebound
 from scipy.integrate import solve_ivp
 import numpy as np
 from get_horizons_data import request_data_horizons_solar_system
 from datetime import datetime
+import polars as pl
+
 
 
 class NumericalSimulation:
@@ -97,8 +97,19 @@ class NumericalSimulation:
                 }
 
 
-        print(meteor_dict)
-        return meteor_dict, solar_system_data
+        # Converte o dicionário de resultados para um DataFrame Polars
+        records = []
+        for date, data in meteor_dict.items():
+            records.append({
+                "CalendarDate": date.strftime("%Y-%b-%d %H:%M:%S.0000"),
+                "X": data["x"],
+                "Y": data["y"],
+                "Z": data["z"],
+            })
+        
+        df = pl.DataFrame(records)
+        return df
+
 
     def collision_probability(self,meteor_radius,earth_radius,distance_earth_date,initial_velocity,earth_mass): # doi:10.1111/j.1365-2966.2006.11349.x
 
@@ -270,19 +281,28 @@ class NumericalSimulation:
 
         return daily_comet_configuration
 
+def simulate_fictional_asteroid(initial_conditions: dict, start_date: str, end_date: str, step_size: str) -> pl.DataFrame | None:
+    """
+    Executa a simulação numérica para um asteroide fictício e retorna sua trajetória.
+    """
+    sim = NumericalSimulation()
+    df = sim.full_period_simulation(
+        radius_meteor=initial_conditions["radius"],
+        mass_meteor=initial_conditions["mass"],
+        xi=initial_conditions["x"],
+        yi=initial_conditions["y"],
+        zi=initial_conditions["z"],
+        vxi=initial_conditions["vx"],
+        vyi=initial_conditions["vy"],
+        vzi=initial_conditions["vz"],
+        initial_date=start_date,
+        end_date=end_date,
+        step_size=step_size
+    )
 
-NumericalSimulation().full_period_simulation(
-    10,1000,
-    -1.310740060953714e8,
-    1.05417337460535e8,
-    -8.172569656297214e6,
-    -2.703855870632367e1,
-    -1.709143318766929e1,
-    2.925250976523674e-2,
-    "2015-04-04",
-    "2025-04-04",
-    "1d",
-)
-# NumericalSimulation().stepsize_simulation(solar_system_data,1000,-1.310740060953714e8, 1.05417337460535e8,-8.172569656297214e6,-2.703855870632367e1,-1.709143318766929e1, 2.925250976523674e-2)
-# NumericalSimulation().two_body_orbit(3e-6, 1.496e8, 0, 0, 0, 9.39e8, 0)
-# NumericalSimulation().horizon_api_simulation()
+    # Converte as coordenadas de km para AU para ser compatível com a outra simulação
+    au_km = 149597870.7
+    for col_name in ["X", "Y", "Z"]:
+        df = df.with_columns((pl.col(col_name) / au_km).alias(col_name))
+
+    return df

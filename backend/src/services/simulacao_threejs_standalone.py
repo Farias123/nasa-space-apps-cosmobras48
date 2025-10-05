@@ -4,6 +4,7 @@ import polars as pl
 import json
 import random
 
+from orbit_simulation import simulate_fictional_asteroid
 
 def get_horizons_vectors(
     target: str, start_time: str, stop_time: str, step_size: str = "1d"
@@ -626,9 +627,38 @@ def get_closest_approach_target(days_ahead: int = 60) -> dict:
 if __name__ == "__main__":
     # --- PARÂMETROS DA SIMULAÇÃO ---
     from datetime import datetime, timedelta
-    start_date = "2025-01-01"
-    end_date = "2035-10-01"  # Simulação de 10 anos
+    start_date = "2025-01-01" # Data de início da simulação
+    end_date = "2035-10-01"  # Data final da simulação
     output_file = "simulacao_orbita_threejs.html"
+
+    # --- PARÂMETROS DO ASTEROIDE FICTÍCIO ---
+    # Defina aqui os dados iniciais do seu asteroide para simular a colisão
+    # As coordenadas (x,y,z) e velocidades (vx,vy,vz) devem estar em km e km/s
+    fictional_asteroid_params = {
+        "name": "Meteoro Fictício",
+        "initial_conditions": {
+            "radius": 0.5, # em km
+            "mass": 1e9, # em kg
+            # Posição inicial (exemplo: perto da órbita de Marte)
+            "x": -2.2e8, "y": 0, "z": 0,
+            # Velocidade inicial (exemplo: em direção à Terra)
+            "vx": 20, "vy": 20, "vz": 0,
+        },
+        "display": {
+            "color": 0xFF4500, # Laranja avermelhado
+            "size": 0.02,
+            "type": "asteroid",
+        }
+    }
+
+    # Calcula a trajetória do asteroide fictício
+    print(f"Calculando trajetória para '{fictional_asteroid_params['name']}'...")
+    df_fictional = simulate_fictional_asteroid(
+        fictional_asteroid_params["initial_conditions"],
+        start_date,
+        end_date,
+        "1d" # Usando passo diário para a simulação
+    )
 
     # 1. Define os alvos principais (planetas)
     all_targets = {
@@ -648,6 +678,16 @@ if __name__ == "__main__":
     asteroid_targets = get_asteroid_targets(end_date)
     all_targets.update(asteroid_targets)
 
+    # Adiciona o asteroide fictício ao dicionário de alvos se a simulação foi bem-sucedida
+    if df_fictional is not None and not df_fictional.is_empty():
+        print(f"'{fictional_asteroid_params['name']}' adicionado à simulação.")
+        trajectories_data = {
+            fictional_asteroid_params['name']: {
+                "dataframe": df_fictional,
+                **fictional_asteroid_params['display']
+            }
+        }
+
     # --- EXECUÇÃO ---
     print(f"Iniciando busca de dados para {len(all_targets)} corpos celestes...")
     trajectories_data = {}
@@ -660,7 +700,7 @@ if __name__ == "__main__":
         )
 
         if df is not None and not df.is_empty():
-            trajectories_data[name] = {
+            trajectories_data[name] = { # Adiciona os dados dos corpos reais
                 "dataframe": df,
                 "color": params["color"],
                 "size": params["size"],
