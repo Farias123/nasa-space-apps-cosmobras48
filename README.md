@@ -1,22 +1,21 @@
-#  1. nasa-space-apps-cosmobras48
+#  1. NASA Space Apps Challenge - Solução da equipe _Cosmobras-48_
 
 Plataforma web para monitoramento e simulação de corpos celestes no nosso sistema solar.
 
 ## 1.1. TOC
 
-- [1. nasa-space-apps-cosmobras48](#1-nasa-space-apps-cosmobras48)
+- [1. NASA Space Apps Challenge - Solução da equipe _Cosmobras-48_](#1-nasa-space-apps-challenge---solução-da-equipe-cosmobras-48)
   - [1.1. TOC](#11-toc)
   - [1.2. Preliminares](#12-preliminares)
-  - [1.3. Topologia do projeto (WiP)](#13-topologia-do-projeto-wip)
-  - [1.4. Quick reference](#14-quick-reference)
+  - [1.3. Arquitetura da solução (wiP)](#13-arquitetura-da-solução-wip)
+  - [1.4. Manipulação do projeto](#14-manipulação-do-projeto)
     - [1.4.1. Instalação inicial de dependências](#141-instalação-inicial-de-dependências)
       - [1.4.1.1. Backend](#1411-backend)
       - [1.4.1.2. Frontend](#1412-frontend)
-  - [1.5. Manipulação do projeto](#15-manipulação-do-projeto)
-  - [1.6. Startup](#16-startup)
-  - [1.7. Shutdown](#17-shutdown)
-  - [1.8. TL;DR](#18-tldr)
-  - [1.9. O que deseja fazer?](#19-o-que-deseja-fazer)
+    - [1.4.2. Startup](#142-startup)
+    - [1.4.3. Shutdown](#143-shutdown)
+  - [1.5. TL;DR](#15-tldr)
+  - [1.6. O que deseja fazer?](#16-o-que-deseja-fazer)
 
 ## 1.2. Preliminares
 
@@ -33,9 +32,13 @@ Esse projeto foi desenvolvido utilizando as seguintes ferramentas:
 - [GNU Make](https://www.gnu.org/software/make/): v4.3 ou superior.
 
 
-## 1.3. Topologia do projeto (WiP)
+## 1.3. Arquitetura da solução (wiP)
 
-A plataforma de software consiste de serviços, orquestrados via Docker Compose, declarados em um [manifesto](./infra/docker/compose.yml) YML. Os mesmos são:
+Na fase inicial de deliberações, foi proposta a seguite arquitetura, de modo a atender os casos de uso propostos no Hackaton:
+
+![architecture](./resources/docs/images/nasa-sac-proposed-architecture.png)
+
+No final, por questões de tempo restrito, diferentes níveis de experiência prática entre os integrantes do time de desenvolvedores e risco de __overengineering_, a plataforma de software consiste dos seguintes serviços, orquestrados via Docker Compose, declarados em um [manifesto](./infra/docker/compose.yml) YML:
 
 - `backend`: Um servidor de aplicação HTTP (back-end), escrito em Python, expondo uma API RESTful construída usando FastAPI;
 - `frontend`: Uma interface de usuário (front-end), escrita em TypeScript, rodando sobre Node.js, utilizando a biblioteca Vite.js para construção de componentes;
@@ -52,7 +55,7 @@ Segue abaixo uma representação esquemática:
 
 ![topology](./resources/docs/images/docker-topology.png)
 
-## 1.4. Quick reference
+## 1.4. Manipulação do projeto
 
 ### 1.4.1. Instalação inicial de dependências
 
@@ -90,8 +93,8 @@ De modo a gerenciar pacotes individualmente, basta executar na raíz do projeto,
 pnpm --prefix frontend [add | remove] [package-name] # Instala (ou remove) pacotes
 ```
 
+### 1.4.2. Startup
 
-## 1.5. Manipulação do projeto
 
 Através do `make`, via scripts de automação do Docker Compose implementados em um [Makefile](./Makefile), na raíz do projeto. Para conferir a documentação de cada script, basta executar no terminal
 
@@ -99,8 +102,6 @@ Através do `make`, via scripts de automação do Docker Compose implementados e
 make                                # Sem nenhum comando, executa o fallback 'help'
 make help                           # Explicitamente, mostra a documentação
 ```
-
-## 1.6. Startup
 
 Considerando uma instalação inicial, na raíz do projeto, execute os seguintes comandos:
 
@@ -126,7 +127,7 @@ $ make start c=backend                          # Inicia o container do backend
 > A interface de usuario em `frontend` está funcional, porém não integrada com a API RESTful servida por `backend`.
 
 
-## 1.7. Shutdown
+### 1.4.3. Shutdown
 
 Similarmente, para ambos os ambientes, de modo a encerrar a execução de todos os contêineres, basta rodar:
 
@@ -136,7 +137,7 @@ make clean          # Opcional. Remove os contêineres e a network associadas ao
 ```
 
 
-## 1.8. TL;DR
+## 1.5. TL;DR
 
 A equipe [Cosmobras-48](https://www.spaceappschallenge.org/2025/find-a-team/cosmobras-48/?tab=members) é composta por:
 
@@ -150,6 +151,6 @@ Qualquer esclarecimento acerca do projeto pode ser feito entrando em contato com
 
 --- 
 
-## 1.9. O que deseja fazer?
+## 1.6. O que deseja fazer?
 
 - [Voltar ao topo](#11-toc)
