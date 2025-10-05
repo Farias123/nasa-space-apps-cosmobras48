@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Filter } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Filter } from "lucide-react";
 
 interface FilterSidebarProps {
   maxDistance: number;
@@ -24,7 +24,9 @@ export const FilterSidebar = ({
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label className="text-sm font-semibold">Distância Máxima</Label>
-            <span className="text-xs text-muted-foreground">{maxDistance.toFixed(2)} AU</span>
+            <span className="text-xs text-muted-foreground">
+              {maxDistance.toFixed(2)} AU
+            </span>
           </div>
           <Slider
             value={[maxDistance]}

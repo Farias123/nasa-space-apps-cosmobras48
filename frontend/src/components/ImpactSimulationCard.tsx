@@ -1,17 +1,17 @@
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { CelestialBodyCloseApproachData } from '@/types/asteroid';
-import { ImpactSimulationProps } from '@/types/impactSimulation';
-import { useImpactSimulation } from '@/hooks/useImpactSimulation';
-import { ImpactScene } from '@/components/ImpactScene';
-import { ImpactControls } from '@/components/ImpactControls';
-import { Zap } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { CelestialBodyCloseApproachData } from "@/types/asteroid";
+import { ImpactSimulationProps } from "@/types/impactSimulation";
+import { useImpactSimulation } from "@/hooks/useImpactSimulation";
+import { ImpactScene } from "@/components/ImpactScene";
+import { ImpactControls } from "@/components/ImpactControls";
+import { Zap } from "lucide-react";
 
 export const ImpactSimulationCard = ({
   asteroid,
@@ -41,8 +41,9 @@ export const ImpactSimulationCard = ({
             Simulação de Impacto: {asteroid.designation}
           </DialogTitle>
           <DialogDescription>
-            Visualize a trajetória e simule o impacto do asteroide {asteroid.designation} com a Terra.
-            A simulação mostra a trajetória curva baseada na velocidade e distância atual do objeto.
+            Visualize a trajetória e simule o impacto do asteroide{" "}
+            {asteroid.designation} com a Terra. A simulação mostra a trajetória
+            curva baseada na velocidade e distância atual do objeto.
           </DialogDescription>
         </DialogHeader>
 
@@ -53,7 +54,7 @@ export const ImpactSimulationCard = ({
               <Zap className="h-5 w-5 text-primary" />
               Visualização 3D
             </h3>
-            <ImpactScene 
+            <ImpactScene
               asteroid={asteroid}
               simulationState={state}
               trajectory={trajectory}
@@ -85,28 +86,40 @@ export const ImpactSimulationCard = ({
                 <Zap className="h-5 w-5 text-primary" />
                 Dados da Simulação
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Informações do Asteroide */}
                 <div className="glass-card p-4 space-y-3">
-                  <h4 className="font-semibold text-sm text-primary">Asteroide</h4>
+                  <h4 className="font-semibold text-sm text-primary">
+                    Asteroide
+                  </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Designação:</span>
-                      <span className="font-medium">{asteroid.designation}</span>
+                      <span className="font-medium">
+                        {asteroid.designation}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Velocidade:</span>
-                      <span className="font-medium">{asteroid.velocity_kms} km/s</span>
+                      <span className="font-medium">
+                        {asteroid.velocity_kms} km/s
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Distância:</span>
-                      <span className="font-medium">{asteroid.distance_au} AU</span>
+                      <span className="font-medium">
+                        {asteroid.distance_au} AU
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Próx. Aproximação:</span>
+                      <span className="text-muted-foreground">
+                        Próx. Aproximação:
+                      </span>
                       <span className="font-medium">
-                        {new Date(asteroid.close_approach_date).toLocaleDateString('pt-BR')}
+                        {new Date(
+                          asteroid.close_approach_date
+                        ).toLocaleDateString("pt-BR")}
                       </span>
                     </div>
                   </div>
@@ -114,14 +127,20 @@ export const ImpactSimulationCard = ({
 
                 {/* Status da Simulação */}
                 <div className="glass-card p-4 space-y-3">
-                  <h4 className="font-semibold text-sm text-primary">Simulação</h4>
+                  <h4 className="font-semibold text-sm text-primary">
+                    Simulação
+                  </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status:</span>
-                      <span className={`font-medium ${
-                        state.isAnimating ? 'text-primary' : 'text-muted-foreground'
-                      }`}>
-                        {state.isAnimating ? 'Em Execução' : 'Pausada'}
+                      <span
+                        className={`font-medium ${
+                          state.isAnimating
+                            ? "text-primary"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {state.isAnimating ? "Em Execução" : "Pausada"}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -148,13 +167,21 @@ export const ImpactSimulationCard = ({
 
               {/* Instruções */}
               <div className="glass-card p-4 bg-accent/10 border-accent/30">
-                <h4 className="font-semibold text-sm text-accent mb-2">Instruções</h4>
+                <h4 className="font-semibold text-sm text-accent mb-2">
+                  Instruções
+                </h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Use o mouse para rotacionar, fazer zoom e mover a câmera</li>
+                  <li>
+                    • Use o mouse para rotacionar, fazer zoom e mover a câmera
+                  </li>
                   <li>• Clique em "Iniciar" para começar a simulação</li>
                   <li>• A linha laranja mostra a trajetória prevista</li>
-                  <li>• O asteroide se move ao longo da trajetória até o impacto</li>
-                  <li>• Use "Exportar Dados" para salvar informações da simulação</li>
+                  <li>
+                    • O asteroide se move ao longo da trajetória até o impacto
+                  </li>
+                  <li>
+                    • Use "Exportar Dados" para salvar informações da simulação
+                  </li>
                 </ul>
               </div>
             </div>

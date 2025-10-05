@@ -106,7 +106,9 @@ export const AsteroidDetails = ({
                   <Gauge className="h-4 w-4 text-primary" />
                   <span className="text-sm">Velocidade</span>
                 </div>
-                <p className="text-2xl font-bold">{asteroid.velocity_kms} km/s</p>
+                <p className="text-2xl font-bold">
+                  {asteroid.velocity_kms} km/s
+                </p>
               </div>
 
               <div className="space-y-2">

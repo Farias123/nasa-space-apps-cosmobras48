@@ -11,12 +11,12 @@ import { Plus, Search, Satellite, Star } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
-  const [asteroids, setAsteroids] = useState<CelestialBodyCloseApproachData[]>(mockAsteroids);
+  const [asteroids, setAsteroids] =
+    useState<CelestialBodyCloseApproachData[]>(mockAsteroids);
   const [searchQuery, setSearchQuery] = useState("");
   const [maxDistance, setMaxDistance] = useState(15);
-  const [selectedAsteroid, setSelectedAsteroid] = useState<CelestialBodyCloseApproachData | null>(
-    null
-  );
+  const [selectedAsteroid, setSelectedAsteroid] =
+    useState<CelestialBodyCloseApproachData | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
 
@@ -35,7 +35,9 @@ const Index = () => {
   };
 
   const filteredAsteroids = asteroids.filter((asteroid) => {
-    const matchesSearch = asteroid.designation.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = asteroid.designation
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     const distance = parseFloat(asteroid.distance_au);
     const matchesDistance = distance <= maxDistance;
 
@@ -97,9 +99,7 @@ const Index = () => {
           {/* Asteroid Grid */}
           <main className="flex-1">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold">
-                Todos os Asteroides
-              </h2>
+              <h2 className="text-2xl font-bold">Todos os Asteroides</h2>
               <p className="text-muted-foreground mt-1">
                 {filteredAsteroids.length} asteroide(s) encontrado(s)
               </p>

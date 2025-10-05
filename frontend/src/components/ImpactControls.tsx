@@ -1,19 +1,19 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  RotateCcw, 
-  Download, 
-  Image, 
-  X, 
-  Play, 
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  RotateCcw,
+  Download,
+  Image,
+  X,
+  Play,
   Pause,
   Target,
-  Zap
-} from 'lucide-react';
-import { CelestialBodyCloseApproachData } from '@/types/asteroid';
-import { ImpactSimulationState } from '@/types/impactSimulation';
+  Zap,
+} from "lucide-react";
+import { CelestialBodyCloseApproachData } from "@/types/asteroid";
+import { ImpactSimulationState } from "@/types/impactSimulation";
 
 interface ImpactControlsProps {
   asteroid: CelestialBodyCloseApproachData;
@@ -55,7 +55,9 @@ export const ImpactControls = ({
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="space-y-1">
               <p className="text-muted-foreground">Diâmetro Estimado</p>
-              <p className="font-semibold">{asteroidInfo.diameter.toFixed(0)}m</p>
+              <p className="font-semibold">
+                {asteroidInfo.diameter.toFixed(0)}m
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Velocidade</p>
@@ -69,10 +71,10 @@ export const ImpactControls = ({
 
           {/* Status da Simulação */}
           <div className="flex items-center justify-between pt-2">
-            <Badge 
+            <Badge
               className={
-                simulationState.isAnimating 
-                  ? "bg-primary/20 text-primary" 
+                simulationState.isAnimating
+                  ? "bg-primary/20 text-primary"
                   : "bg-muted/20 text-muted-foreground"
               }
             >
@@ -88,7 +90,7 @@ export const ImpactControls = ({
                 </>
               )}
             </Badge>
-            
+
             <div className="text-xs text-muted-foreground">
               Progresso: {(simulationState.animationProgress * 100).toFixed(0)}%
             </div>
@@ -107,7 +109,7 @@ export const ImpactControls = ({
           <Play className="h-4 w-4 mr-1" />
           Iniciar
         </Button>
-        
+
         <Button
           onClick={onResetSimulation}
           variant="outline"
@@ -130,7 +132,7 @@ export const ImpactControls = ({
           <Download className="h-4 w-4 mr-1" />
           Exportar Dados
         </Button>
-        
+
         <Button
           onClick={onExportPNG}
           variant="outline"

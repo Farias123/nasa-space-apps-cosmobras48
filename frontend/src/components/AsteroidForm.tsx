@@ -1,11 +1,17 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CelestialBodyCloseApproachData } from '@/types/asteroid';
-import { Rocket, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CelestialBodyCloseApproachData } from "@/types/asteroid";
+import { Rocket, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 interface AsteroidFormProps {
   open: boolean;
@@ -13,19 +19,28 @@ interface AsteroidFormProps {
   onSubmit: (asteroid: CelestialBodyCloseApproachData) => void;
 }
 
-export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps) => {
+export const AsteroidForm = ({
+  open,
+  onOpenChange,
+  onSubmit,
+}: AsteroidFormProps) => {
   const [formData, setFormData] = useState({
-    designation: '',
-    velocity_kms: '',
-    distance_au: '',
-    close_approach_date: '',
+    designation: "",
+    velocity_kms: "",
+    distance_au: "",
+    close_approach_date: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.designation || !formData.velocity_kms || !formData.distance_au || !formData.close_approach_date) {
-      toast.error('Preencha todos os campos obrigatórios');
+    if (
+      !formData.designation ||
+      !formData.velocity_kms ||
+      !formData.distance_au ||
+      !formData.close_approach_date
+    ) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
 
@@ -37,12 +52,12 @@ export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps
     };
 
     onSubmit(newAsteroid);
-    toast.success('Asteroide cadastrado com sucesso!');
+    toast.success("Asteroide cadastrado com sucesso!");
     setFormData({
-      designation: '',
-      velocity_kms: '',
-      distance_au: '',
-      close_approach_date: '',
+      designation: "",
+      velocity_kms: "",
+      distance_au: "",
+      close_approach_date: "",
     });
     onOpenChange(false);
   };
@@ -68,7 +83,9 @@ export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps
                 id="designation"
                 placeholder="Ex: Apophis"
                 value={formData.designation}
-                onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, designation: e.target.value })
+                }
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>
@@ -80,7 +97,9 @@ export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps
                 type="text"
                 placeholder="Ex: 7.4"
                 value={formData.velocity_kms}
-                onChange={(e) => setFormData({ ...formData, velocity_kms: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, velocity_kms: e.target.value })
+                }
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>
@@ -92,7 +111,9 @@ export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps
                 type="text"
                 placeholder="Ex: 0.19"
                 value={formData.distance_au}
-                onChange={(e) => setFormData({ ...formData, distance_au: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, distance_au: e.target.value })
+                }
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>
@@ -103,7 +124,12 @@ export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps
                 id="close_approach_date"
                 type="date"
                 value={formData.close_approach_date}
-                onChange={(e) => setFormData({ ...formData, close_approach_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    close_approach_date: e.target.value,
+                  })
+                }
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>

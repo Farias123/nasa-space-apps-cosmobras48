@@ -1,9 +1,15 @@
-import { CelestialBodyCloseApproachData } from '@/types/asteroid';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Info, Rocket, AlertTriangle } from 'lucide-react';
-import { cn } from '@/helpers/utils';
+import { CelestialBodyCloseApproachData } from "@/types/asteroid";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Star, Info, Rocket, AlertTriangle } from "lucide-react";
+import { cn } from "@/helpers/utils";
 
 interface AsteroidCardProps {
   asteroid: CelestialBodyCloseApproachData;
@@ -12,34 +18,40 @@ interface AsteroidCardProps {
 }
 
 // Função para calcular nível de ameaça baseado na distância
-const getThreatLevel = (distanceAu: string): 'safe' | 'low' | 'medium' | 'high' | 'critical' => {
+const getThreatLevel = (
+  distanceAu: string
+): "safe" | "low" | "medium" | "high" | "critical" => {
   const distance = parseFloat(distanceAu);
-  if (distance < 0.01) return 'critical';
-  if (distance < 0.05) return 'high';
-  if (distance < 0.1) return 'medium';
-  if (distance < 0.5) return 'low';
-  return 'safe';
+  if (distance < 0.01) return "critical";
+  if (distance < 0.05) return "high";
+  if (distance < 0.1) return "medium";
+  if (distance < 0.5) return "low";
+  return "safe";
 };
 
 const threatColors = {
-  safe: 'bg-success/20 text-success border-success/50',
-  low: 'bg-primary/20 text-primary border-primary/50',
-  medium: 'bg-warning/20 text-warning border-warning/50',
-  high: 'bg-destructive/20 text-destructive border-destructive/50',
-  critical: 'bg-destructive text-destructive-foreground border-destructive',
+  safe: "bg-success/20 text-success border-success/50",
+  low: "bg-primary/20 text-primary border-primary/50",
+  medium: "bg-warning/20 text-warning border-warning/50",
+  high: "bg-destructive/20 text-destructive border-destructive/50",
+  critical: "bg-destructive text-destructive-foreground border-destructive",
 };
 
 const threatLabels = {
-  safe: 'Seguro',
-  low: 'Baixo',
-  medium: 'Médio',
-  high: 'Alto',
-  critical: 'Crítico',
+  safe: "Seguro",
+  low: "Baixo",
+  medium: "Médio",
+  high: "Alto",
+  critical: "Crítico",
 };
 
-export const AsteroidCard = ({ asteroid, onToggleFavorite, onViewDetails }: AsteroidCardProps) => {
+export const AsteroidCard = ({
+  asteroid,
+  onToggleFavorite,
+  onViewDetails,
+}: AsteroidCardProps) => {
   const threatLevel = getThreatLevel(asteroid.distance_au);
-  const showWarning = threatLevel === 'high' || threatLevel === 'critical';
+  const showWarning = threatLevel === "high" || threatLevel === "critical";
 
   return (
     <Card className="glass-card transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20 group">
@@ -70,16 +82,22 @@ export const AsteroidCard = ({ asteroid, onToggleFavorite, onViewDetails }: Aste
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="space-y-1">
             <p className="text-muted-foreground">Velocidade</p>
-            <p className="font-semibold text-foreground">{asteroid.velocity_kms} km/s</p>
+            <p className="font-semibold text-foreground">
+              {asteroid.velocity_kms} km/s
+            </p>
           </div>
           <div className="space-y-1">
             <p className="text-muted-foreground">Distância</p>
-            <p className="font-semibold text-foreground">{asteroid.distance_au} AU</p>
+            <p className="font-semibold text-foreground">
+              {asteroid.distance_au} AU
+            </p>
           </div>
           <div className="space-y-1 col-span-2">
             <p className="text-muted-foreground">Próx. Aproximação</p>
             <p className="font-semibold text-foreground">
-              {new Date(asteroid.close_approach_date).toLocaleDateString('pt-BR')}
+              {new Date(asteroid.close_approach_date).toLocaleDateString(
+                "pt-BR"
+              )}
             </p>
           </div>
         </div>
