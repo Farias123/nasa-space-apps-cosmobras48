@@ -29,6 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy the project into the image
 COPY ./backend/src ./src
+COPY ./resources/static ./static
 
 # Sync the project
 RUN --mount=type=cache,target=/root/.cache/uv \

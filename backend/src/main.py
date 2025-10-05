@@ -1,11 +1,14 @@
 import uvicorn
+from src.server import container
 
 
 if __name__ == "__main__":
+    wsconfig = container.config
+
     uvicorn.run(
-        "src.app:app",
-        host="0.0.0.0",
-        port=8001,
-        log_level="info",
-        reload=True,
+        "src.server:app",
+        host=wsconfig.server_hostname(),
+        port=wsconfig.server_port(),
+        log_level=wsconfig.server_log_level(),
+        reload=wsconfig.server_debug(),
     )

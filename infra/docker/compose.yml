@@ -56,7 +56,7 @@ services:
       options:
         max-size: '10m'
         max-file: '5'
-    command: ["run", "start" ]
+    command: [ "start" ]
     ports:
       - "3000:3000"
     volumes:
@@ -88,6 +88,7 @@ services:
       - '/etc/timezone:/etc/timezone:ro'
       - '/etc/localtime:/etc/localtime:ro'
       - ../../backend/src:/home/cosmobras48/backend/src
+      - ../../resources/static:/home/cosmobras48/backend/static
     env_file:
       - ./backend/.backend.env
     restart: unless-stopped
