@@ -20,7 +20,7 @@ def _merge_filter_objects(
 
     for key, value in incoming_filters.__dict__.items():  # type: ignore
         if not value:
-            incoming_filters.__dict__.update({key, DEFAULT_FILTERS[key]})  # type: ignore
+            dict(incoming_filters).update({key, dict(DEFAULT_FILTERS)[key]})  # type: ignore
 
     return incoming_filters
 
@@ -34,7 +34,9 @@ def get_nasa_close_approach_data(
         logger.info("Fazendo a requisição para a API da NASA...")
         # Faz a requisição GET para a API com os parâmetros definidos
         filters = _merge_filter_objects(incoming_filters)
-        response = requests.get(API_URL, params=filters)
+
+        logger.info(dict(filters))
+        response = requests.get(API_URL, params=dict(filters))
 
         # Verifica se a requisição foi bem-sucedida (código de status 200)
         response.raise_for_status()

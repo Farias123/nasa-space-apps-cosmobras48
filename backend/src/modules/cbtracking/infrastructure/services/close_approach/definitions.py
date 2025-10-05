@@ -37,12 +37,14 @@ class CelestialBodyCloseApproachFilterParams(BaseModel):
     dist_max: str | None
     sort: str | None
 
+    def __iter__(self):
+        for key in self.__dict__:
+            yield key.strip().replace("_", "-"), getattr(self, key)
+
 
 DEFAULT_FILTERS = CelestialBodyCloseApproachFilterParams(
-    **{
-        "date-min": "now",
-        "date-max": "+60",
-        "dist-max": "0.05",  # Distância máxima em unidades astronômicas (UA)
-        "sort": "date",  # Ordenar os resultados por data
-    }
+    date_max="+60",
+    date_min="now",
+    dist_max="0.05",  # Distância máxima em unidades astronômicas (UA)
+    sort="date",  # Ordenar os resultados por data
 )

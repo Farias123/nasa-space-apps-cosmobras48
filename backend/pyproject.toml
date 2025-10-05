@@ -18,18 +18,21 @@ dependencies = [
     "pydantic>=2.11.10",
     "requests>=2.32.5",
     "swagger-ui-py>=25.7.1",
-    "types-requests>=2.32.4.20250913",
     "uvicorn>=0.37.0",
     "polars>=0.20.31",
     "plotly>=5.22.0",
+    "numpy>=2.3.3",
+    "astroquery[all]>=0.4.11",
 ]
 
 [dependency-groups]
 dev = [
     "coverage>=7.10.7",
     "mypy>=1.18.2",
+    "plotly-stubs>=0.0.6",
     "pytest>=8.4.2",
     "ruff>=0.13.3",
+    "types-requests>=2.32.4.20250913",
 ]
 
 [tool.pytest.ini_options]
