@@ -132,8 +132,10 @@ def plot_orbits_3d_threejs(
             "y": df["Y"].to_list(),
             "z": df["Z"].to_list(),
             "dates": df["CalendarDate"].to_list(),  # Adiciona datas individuais
+            "startDate": df["CalendarDate"][0] if not df.is_empty() else None,
             "color": df["color"][0],
             "size": df["size"][0],
+            "type": df["type"][0],
         }
 
     if not plot_data or max_steps == 0:
@@ -237,6 +239,7 @@ def plot_orbits_3d_threejs(
             const bodyGeometry = new THREE.SphereGeometry(bodyData.size, 20, 20);
             const bodyMaterial = new THREE.MeshBasicMaterial({{ color: color }});
             const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.userData = {{ name: name, type: bodyData.type }}; // Armazena dados para o clique
             scene.add(body);
 
             // Cria a etiqueta com o nome do corpo celeste
@@ -249,10 +252,19 @@ def plot_orbits_3d_threejs(
             nameLabel.position.set(0, 0.03, 0); // Desloca um pouco acima do objeto
             body.add(nameLabel); // Anexa a etiqueta ao corpo celeste
 
-            // Cria uma geometria de linha vazia que será atualizada dinamicamente
-            const orbitGeometry = new THREE.BufferGeometry();
+            // Cria a geometria da órbita com todos os pontos
+            const orbitPoints = [];
+            for(let i=0; i < bodyData.x.length; i++) {{
+                orbitPoints.push(new THREE.Vector3(bodyData.x[i], bodyData.y[i], bodyData.z[i]));
+            }}
+            const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
             const orbitMaterial = new THREE.LineBasicMaterial({{ color: color, opacity: 0.5, transparent: true }});
-            const orbit = new THREE.Line(orbitGeometry, orbitMaterial); // A linha da órbita
+            const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+
+            // Órbitas de asteroides começam invisíveis
+            if (bodyData.type === 'asteroid') {{
+                orbit.visible = false;
+            }}
             scene.add(orbit);
 
             celestialObjects[name] = {{ body, orbit, data: bodyData }};
@@ -262,12 +274,15 @@ def plot_orbits_3d_threejs(
         const slider = document.getElementById('timeline-slider');
         const dateDisplay = document.getElementById('date-display');
 
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Converte a data de início da simulação principal para um objeto Date
+        const simStartDate = new Date(simData['Terra'].dates[0].split(' ')[0]);
+        const oneDay = 1000 * 60 * 60 * 24; // Milissegundos em um dia
+
         let currentStep = 0;
         let isPlaying = false;
-
-        // Define o comprimento da trilha da órbita (em número de passos)
-        // 365 passos correspondem a 1 ano se o step_size for '1d'
-        const trailLength = 365;
 
         function updateScene(step) {{
             currentStep = Math.max(0, Math.min(step, {max_steps - 1}));
@@ -281,25 +296,20 @@ def plot_orbits_3d_threejs(
             for (const name in celestialObjects) {{
                 const obj = celestialObjects[name];
                 const data = obj.data;
-                // Garante que não tentemos acessar um índice que não existe para este objeto específico
-                const stepForObject = Math.min(currentStep, data.x.length - 1);
+
+                // Calcula o deslocamento (offset) para este objeto
+                const bodyStartDate = new Date(data.startDate.split(' ')[0]);
+                const offsetDays = Math.round((bodyStartDate - simStartDate) / oneDay);
+                
+                // Calcula o índice correto para este objeto, considerando o offset
+                const stepForObject = currentStep - offsetDays;
+
+                if (stepForObject < 0 || stepForObject >= data.x.length) continue; // Pula se estiver fora do intervalo de dados
 
                 const x = data.x[stepForObject];
                 const y = data.y[stepForObject];
                 const z = data.z[stepForObject];
                 obj.body.position.set(x, y, z);
-
-                // Atualiza a trilha da órbita
-                const trailStart = Math.max(0, stepForObject - trailLength);
-                const trailEnd = stepForObject + 1;
-
-                const orbitPoints = [];
-                for (let i = trailStart; i < trailEnd; i++) {{
-                    orbitPoints.push(new THREE.Vector3(data.x[i], data.y[i], data.z[i]));
-                }}
-
-                obj.orbit.geometry.setFromPoints(orbitPoints);
-                obj.orbit.geometry.computeBoundingSphere(); // Necessário para a visibilidade
             }}
         }}
 
@@ -313,6 +323,26 @@ def plot_orbits_3d_threejs(
             playPauseBtn.textContent = 'Play';
             updateScene(parseInt(e.target.value));
         }});
+
+        let lastClickedAsteroid = null;
+
+        function onMouseClick(event) {{
+            // Normaliza as coordenadas do mouse
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            for (let i = 0; i < intersects.length; i++) {{
+                const clickedObject = intersects[i].object;
+                if (clickedObject.userData.type === 'asteroid') {{
+                    const name = clickedObject.userData.name;
+                    celestialObjects[name].orbit.visible = !celestialObjects[name].orbit.visible;
+                    break; // Para após encontrar o primeiro asteroide
+                }}
+            }}
+        }}
 
         function animate() {{
             requestAnimationFrame(animate);
@@ -337,6 +367,7 @@ def plot_orbits_3d_threejs(
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
         }});
 
+        window.addEventListener('click', onMouseClick);
         updateScene(0);
         animate();
     </script>
@@ -351,20 +382,17 @@ def plot_orbits_3d_threejs(
         pass
 
 
-def get_asteroid_targets(limit: int = 10) -> dict:
+def get_asteroid_targets() -> dict:
     """Busca uma lista de asteroides que farão aproximação da Terra (fly-by).
 
     usando a API JPL Small-Body Database.
-
-    Args:
-        limit: O número máximo de asteroides a serem buscados.
 
     Returns:
         Um dicionário de alvos de asteroides.
 
     """
     # Busca por asteroides com futuras aproximações da Terra
-    api_url = f"https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.1AU&date-min=now&sort=dist&limit={limit}"
+    api_url = "https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.1AU&date-min=now&sort=dist"
     asteroid_targets = {}
 
     try:
@@ -378,14 +406,20 @@ def get_asteroid_targets(limit: int = 10) -> dict:
         # O campo 'des' (designation) é o nome do asteroide.
         # O campo 'fullname' pode conter caracteres que a API HORIZONS não gosta.
         for item in data["data"]:
-            fullname = item[0]  # 'des' field
-            target_id = f"{fullname};"
+            designation = item[0]  # Campo 'des'
+            close_approach_date_str = item[3]  # Campo 'cd' (calendar date)
+
+            target_id = f'"DES={designation};"'  # Formata o ID para a API HORIZONS
 
             # Gera uma cor aleatória e um tamanho pequeno para o asteroide
-            asteroid_targets[fullname] = {
+            asteroid_targets[designation] = {
                 "id": target_id,
+                "close_approach_date": close_approach_date_str.split(" ")[
+                    0
+                ],  # Pega apenas a parte YYYY-MM-DD
                 "color": random.randint(0x888888, 0xFFFFFF),  # Cores claras
                 "size": 0.01,
+                "type": "asteroid",
             }
 
         return asteroid_targets
@@ -422,14 +456,15 @@ def get_closest_approach_target(days_ahead: int = 60) -> dict:
 
         # Como a API já está ordenada por distância ('sort=dist'), o primeiro item é o mais próximo.
         closest_item = data["data"][0]
-        name = closest_item[0]  # Campo 'des' (designation)
-        target_id = f"{name};"
+        designation = closest_item[0]  # Campo 'des' (designation)
+        target_id = f'"DES={designation};"' # Formata o ID para a API HORIZONS
 
         return {
-            name: {
+            designation: {
                 "id": target_id,
                 "color": 0xFF00FF,
                 "size": 0.012,
+                "type": "asteroid",
             }  # Cor magenta para destaque
         }
     except requests.exceptions.RequestException:
@@ -438,57 +473,46 @@ def get_closest_approach_target(days_ahead: int = 60) -> dict:
 
 if __name__ == "__main__":
     # --- PARÂMETROS DA SIMULAÇÃO ---
-    start_date = "2024-01-01"
-    end_date = "2124-01-01"  # Simulação de 100 anos
+    from datetime import datetime, timedelta
+    start_date = "2024-10-01"
+    end_date = "2034-10-01"  # Simulação de 10 anos
     output_file = "simulacao_orbita_threejs.html"
 
     # 1. Define os alvos principais (planetas)
     all_targets = {
-        "Mercurio": {"id": "199", "color": 0x8C8C8C, "size": 0.015},
-        "Venus": {"id": "299", "color": 0xD8A868, "size": 0.02},
-        "Terra": {"id": "399", "color": 0x00AAFF, "size": 0.022},
-        "Marte": {"id": "499", "color": 0xFF5733, "size": 0.018},
-        "Jupiter": {"id": "599", "color": 0xC99039, "size": 0.04},
-        "Saturno": {"id": "699", "color": 0xE3D9B1, "size": 0.035},
-        "Urano": {"id": "799", "color": 0xA2E465, "size": 0.03},
-        "Netuno": {"id": "899", "color": 0x3F54BA, "size": 0.03},
-        "Plutao": {"id": "999", "color": 0xBFB5A6, "size": 0.01},
-        # Asteroides adicionados manualmente para garantir a renderização
-        "Apophis": {"id": '"DES= 2099942;"', "color": 0xFFFFFF, "size": 0.01},
-        "2025 SP23": {
-            "id": '"DES= 54363842;"',
-            "color": 0xFFA500,
-            "size": 0.01,
-        },  # Laranja
-        "2025 T0": {"id": '"DES= 54363854;"', "color": 0x00FF00, "size": 0.01},  # Verde
-        "2025 TU1": {
-            "id": '"DES= 54363865;"',
-            "color": 0x00FFFF,
-            "size": 0.01,
-        },  # Ciano
-        "2019 UT6": {
-            "id": '"DES= 54002019;"',
-            "color": 0xFF00FF,
-            "size": 0.01,
-        },  # Magenta
-        "2025 SM15": {
-            "id": '"DES= 54363831;"',
-            "color": 0xFFFF00,
-            "size": 0.01,
-        },  # Amarelo
+        "Mercurio": {"id": "199", "color": 0x8C8C8C, "size": 0.015, "type": "planet"},
+        "Venus": {"id": "299", "color": 0xD8A868, "size": 0.02, "type": "planet"},
+        "Terra": {"id": "399", "color": 0x00AAFF, "size": 0.022, "type": "planet"},
+        "Marte": {"id": "499", "color": 0xFF5733, "size": 0.018, "type": "planet"},
+        "Jupiter": {"id": "599", "color": 0xC99039, "size": 0.04, "type": "planet"},
+        "Saturno": {"id": "699", "color": 0xE3D9B1, "size": 0.035, "type": "planet"},
+        "Urano": {"id": "799", "color": 0xA2E465, "size": 0.03, "type": "planet"},
+        "Netuno": {"id": "899", "color": 0x3F54BA, "size": 0.03, "type": "planet"},
+        "Plutao": {"id": "999", "color": 0xBFB5A6, "size": 0.01, "type": "planet"},
     }
 
+    # 2. Busca dinamicamente os asteroides com aproximação da Terra
+    print("Buscando asteroides com aproximação da Terra...")
+    asteroid_targets = get_asteroid_targets()
+    all_targets.update(asteroid_targets)
+
     # --- EXECUÇÃO ---
+    print(f"Iniciando busca de dados para {len(all_targets)} corpos celestes...")
     trajectories_data = {}
+    
     for name, params in all_targets.items():
+        # Busca os dados para todos os corpos usando o mesmo período de simulação geral.
+        print(f"  - Buscando dados para '{name}' de {start_date} a {end_date}")
         df = get_horizons_vectors(
             params["id"], start_date, end_date, step_size="1d"
-        )  # Usando passo diário
+        )
+
         if df is not None and not df.is_empty():
             trajectories_data[name] = {
                 "dataframe": df,
                 "color": params["color"],
                 "size": params["size"],
+                "type": params["type"],
             }
 
     if trajectories_data:
@@ -496,8 +520,10 @@ if __name__ == "__main__":
             name: data["dataframe"].with_columns(
                 pl.lit(data["color"]).alias("color"), pl.lit(data["size"]).alias("size")
             )
-            for name, data in trajectories_data.items()
+            .with_columns(pl.lit(data["type"]).alias("type"))
+            for name, data in trajectories_data.items() 
         }
         plot_orbits_3d_threejs(plot_input, output_file)
+        print(f"\nSimulação gerada com sucesso! Abra o arquivo: {output_file}")
     else:
-        pass
+        print("Nenhum dado de trajetória foi obtido. A simulação não foi gerada.")
