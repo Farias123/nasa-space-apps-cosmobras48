@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Asteroid } from '@/types/asteroid';
+import { CelestialBodyCloseApproachData } from '@/types/asteroid';
 import {
   Dialog,
   DialogContent,
@@ -10,17 +10,27 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Gauge, Orbit, Ruler, MapPin, Star } from 'lucide-react';
+import { Calendar, Gauge, MapPin, Star } from 'lucide-react';
 import { cn } from '@/helpers/utils';
 import { SimulationPanel } from './SimulationPanel';
 import { TrajectoryView } from './TrajectoryView';
 
 interface AsteroidDetailsProps {
-  asteroid: Asteroid | null;
+  asteroid: CelestialBodyCloseApproachData | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (designation: string) => void;
 }
+
+// Função para calcular nível de ameaça baseado na distância
+const getThreatLevel = (distanceAu: string): 'safe' | 'low' | 'medium' | 'high' | 'critical' => {
+  const distance = parseFloat(distanceAu);
+  if (distance < 0.01) return 'critical';
+  if (distance < 0.05) return 'high';
+  if (distance < 0.1) return 'medium';
+  if (distance < 0.5) return 'low';
+  return 'safe';
+};
 
 const threatColors = {
   safe: 'bg-success/20 text-success',
@@ -49,6 +59,8 @@ export const AsteroidDetails = ({
 
   if (!asteroid) return null;
 
+  const threatLevel = getThreatLevel(asteroid.distance_au);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card border-primary/30 max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -56,30 +68,27 @@ export const AsteroidDetails = ({
           <div className="flex items-start justify-between">
             <div>
               <DialogTitle className="text-2xl font-bold gradient-text">
-                {asteroid.name}
+                {asteroid.designation}
               </DialogTitle>
               <DialogDescription className="mt-2">
-                Asteroide ID: {asteroid.id} • Classificação: {asteroid.orbit}
+                Designação: {asteroid.designation}
               </DialogDescription>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onToggleFavorite(asteroid.id)}
-              className={cn(
-                "transition-colors",
-                asteroid.isFavorite && "text-warning"
-              )}
+              onClick={() => onToggleFavorite(asteroid.designation)}
+              className="transition-colors"
             >
-              <Star className={cn("h-6 w-6", asteroid.isFavorite && "fill-current")} />
+              <Star className="h-6 w-6" />
             </Button>
           </div>
         </DialogHeader>
 
         <div className="space-y-6 mt-6">
           <div className="flex items-center gap-2">
-            <Badge className={cn("font-medium text-sm px-3 py-1", threatColors[asteroid.threatLevel])}>
-              Ameaça: {threatLabels[asteroid.threatLevel]}
+            <Badge className={cn("font-medium text-sm px-3 py-1", threatColors[threatLevel])}>
+              Ameaça: {threatLabels[threatLevel]}
             </Badge>
           </div>
 
@@ -88,18 +97,10 @@ export const AsteroidDetails = ({
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Ruler className="h-4 w-4 text-primary" />
-                <span className="text-sm">Tamanho</span>
-              </div>
-              <p className="text-2xl font-bold">{asteroid.size} metros</p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
                 <Gauge className="h-4 w-4 text-primary" />
                 <span className="text-sm">Velocidade</span>
               </div>
-              <p className="text-2xl font-bold">{asteroid.velocity} km/s</p>
+              <p className="text-2xl font-bold">{asteroid.velocity_kms} km/s</p>
             </div>
 
             <div className="space-y-2">
@@ -107,15 +108,7 @@ export const AsteroidDetails = ({
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-sm">Distância Atual</span>
               </div>
-              <p className="text-2xl font-bold">{asteroid.distance}M km</p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Orbit className="h-4 w-4 text-primary" />
-                <span className="text-sm">Tipo de Órbita</span>
-              </div>
-              <p className="text-2xl font-bold">{asteroid.orbit}</p>
+              <p className="text-2xl font-bold">{asteroid.distance_au} AU</p>
             </div>
           </div>
 
@@ -128,19 +121,9 @@ export const AsteroidDetails = ({
             </div>
             <div className="space-y-3 ml-6">
               <div>
-                <p className="text-sm text-muted-foreground">Data de Descoberta</p>
-                <p className="font-semibold">
-                  {new Date(asteroid.discoveryDate).toLocaleDateString('pt-BR', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </p>
-              </div>
-              <div>
                 <p className="text-sm text-muted-foreground">Próxima Aproximação à Terra</p>
                 <p className="font-semibold text-warning">
-                  {new Date(asteroid.nextApproach).toLocaleDateString('pt-BR', {
+                  {new Date(asteroid.close_approach_date).toLocaleDateString('pt-BR', {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric',
@@ -149,18 +132,6 @@ export const AsteroidDetails = ({
               </div>
             </div>
           </div>
-
-          {asteroid.description && (
-            <>
-              <Separator className="bg-border/50" />
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm">Descrição</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {asteroid.description}
-                </p>
-              </div>
-            </>
-          )}
 
           <div className="flex gap-3 pt-4">
             <Button 
