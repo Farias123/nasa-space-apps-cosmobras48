@@ -151,7 +151,7 @@ export const AsteroidDetails = ({
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={() => setSimulationOpen(true)}
               >
-                Simulação de Impacto
+                Impact Simulation
               </Button>
             </div>
           </div>

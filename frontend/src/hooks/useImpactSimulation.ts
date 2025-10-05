@@ -13,23 +13,23 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
   const animationRef = useRef<number>();
   const startTimeRef = useRef<number>();
 
-  // Calcular trajetória baseada nos dados do asteroide
+  // Calculate trajectory based on asteroid data
   const calculateTrajectory = useCallback((): AsteroidTrajectory => {
     const distanceAu = parseFloat(asteroid.distance_au);
     const velocity = parseFloat(asteroid.velocity_kms);
     
-    // Posição inicial do asteroide (baseada na distância AU)
-    const startDistance = Math.max(2, distanceAu * 2); // Escala para visualização
+    // Initial asteroid position (based on AU distance)
+    const startDistance = Math.max(2, distanceAu * 2); // Scale for visualization
     const startPosition = {
       x: startDistance,
-      y: startDistance * 0.3, // Altura da trajetória
+      y: startDistance * 0.3, // Trajectory height
       z: 0,
     };
 
-    // Ponto de impacto na Terra (centro)
+    // Impact point on Earth (center)
     const endPosition = { x: 0, y: 0, z: 0 };
 
-    // Pontos de controle para curva Bézier
+    // Control points for Bézier curve
     const controlPoints = [
       {
         x: startDistance * 0.7,
@@ -50,12 +50,12 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
     };
   }, [asteroid.distance_au, asteroid.velocity_kms]);
 
-  // Calcular posição do asteroide na trajetória
+  // Calculate asteroid position on trajectory
   const calculateAsteroidPosition = useCallback((progress: number) => {
     const trajectory = calculateTrajectory();
     const { startPosition, endPosition, controlPoints } = trajectory;
 
-    // Curva de Bézier quadrática
+    // Quadratic Bézier curve
     const t = Math.min(1, Math.max(0, progress));
     const oneMinusT = 1 - t;
 
@@ -77,7 +77,7 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
     return { x, y, z };
   }, [calculateTrajectory]);
 
-  // Iniciar animação
+  // Start animation
   const startSimulation = useCallback(() => {
     if (state.isAnimating) return;
 
@@ -86,7 +86,7 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
 
     const animate = () => {
       const elapsed = Date.now() - (startTimeRef.current || 0);
-      const duration = 5000; // 5 segundos
+      const duration = 5000; // 5 seconds
       const progress = elapsed / duration;
 
       if (progress >= 1) {
@@ -111,7 +111,7 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
     animationRef.current = requestAnimationFrame(animate);
   }, [state.isAnimating, calculateAsteroidPosition]);
 
-  // Reiniciar simulação
+  // Reset simulation
   const resetSimulation = useCallback(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -125,7 +125,7 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
     });
   }, [calculateAsteroidPosition]);
 
-  // Exportar dados da simulação
+  // Export simulation data
   const exportData = useCallback(() => {
     const trajectory = calculateTrajectory();
     const data = {
@@ -156,9 +156,9 @@ export const useImpactSimulation = (asteroid: CelestialBodyCloseApproachData) =>
     URL.revokeObjectURL(url);
   }, [asteroid, state, calculateTrajectory]);
 
-  // Exportar PNG (placeholder - será implementado com canvas)
+  // Export PNG (placeholder - will be implemented with canvas)
   const exportPNG = useCallback(() => {
-    // TODO: Implementar captura de canvas como PNG
+    // TODO: Implement canvas capture as PNG
     console.log('Export PNG functionality will be implemented');
   }, []);
 

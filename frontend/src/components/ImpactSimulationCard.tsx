@@ -38,21 +38,21 @@ export const ImpactSimulationCard = ({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold gradient-text flex items-center gap-2">
             <Zap className="h-6 w-6" />
-            Simulação de Impacto: {asteroid.designation}
+            Impact Simulation: {asteroid.designation}
           </DialogTitle>
           <DialogDescription>
-            Visualize a trajetória e simule o impacto do asteroide{" "}
-            {asteroid.designation} com a Terra. A simulação mostra a trajetória
-            curva baseada na velocidade e distância atual do objeto.
+            Visualize the trajectory and simulate the impact of asteroid{" "}
+            {asteroid.designation} with Earth. The simulation shows the curved
+            trajectory based on the current velocity and distance of the object.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-6">
-          {/* Cena 3D Principal */}
+          {/* Main 3D Scene */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
-              Visualização 3D
+              3D Visualization
             </h3>
             <ImpactScene
               asteroid={asteroid}
@@ -61,13 +61,13 @@ export const ImpactSimulationCard = ({
             />
           </div>
 
-          {/* Controles e Informações */}
+          {/* Controls and Information */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Controles */}
+            {/* Controls */}
             <div className="lg:col-span-1">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
-                Controles
+                Controls
               </h3>
               <ImpactControls
                 asteroid={asteroid}
@@ -80,25 +80,25 @@ export const ImpactSimulationCard = ({
               />
             </div>
 
-            {/* Instruções */}
+            {/* Instructions */}
             <div className="lg:col-span-2 space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
-                Instruções
+                Instructions
               </h3>
-              
+
               <div className="glass-card p-4 bg-accent/10 border-accent/30">
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>
-                    • Use o mouse para rotacionar, fazer zoom e mover a câmera
+                    • Use the mouse to rotate, zoom, and move the camera
                   </li>
-                  <li>• Clique em "Iniciar" para começar a simulação</li>
-                  <li>• A linha laranja mostra a trajetória prevista</li>
+                  <li>• Click "Start" to begin the simulation</li>
+                  <li>• The orange line shows the predicted trajectory</li>
                   <li>
-                    • O asteroide se move ao longo da trajetória até o impacto
+                    • The asteroid moves along the trajectory until impact
                   </li>
                   <li>
-                    • Use "Exportar Dados" para salvar informações da simulação
+                    • Use "Export Data" to save simulation information
                   </li>
                 </ul>
               </div>

@@ -34,16 +34,16 @@ export const ImpactControls = ({
   onExportPNG,
   onClose,
 }: ImpactControlsProps) => {
-  // Calcular informações do asteroide
+  // Calculate asteroid information
   const asteroidInfo = {
-    diameter: Math.max(50, parseFloat(asteroid.velocity_kms) * 10), // Estimativa
+    diameter: Math.max(50, parseFloat(asteroid.velocity_kms) * 10), // Estimate
     velocity: parseFloat(asteroid.velocity_kms),
     distance: parseFloat(asteroid.distance_au),
   };
 
   return (
     <div className="space-y-4">
-      {/* Informações do Asteroide */}
+      {/* Asteroid Information */}
       <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -54,28 +54,30 @@ export const ImpactControls = ({
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="space-y-1">
-              <p className="text-muted-foreground">Diâmetro Estimado</p>
+              <p className="text-muted-foreground">Estimated Diameter</p>
               <p className="font-semibold">
                 {asteroidInfo.diameter.toFixed(0)}m
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-muted-foreground">Velocidade</p>
+              <p className="text-muted-foreground">Velocity</p>
               <p className="font-semibold">{asteroidInfo.velocity} km/s</p>
             </div>
             <div className="space-y-1">
-              <p className="text-muted-foreground">Distância Atual</p>
+              <p className="text-muted-foreground">Current Distance</p>
               <p className="font-semibold">{asteroidInfo.distance} AU</p>
             </div>
             <div className="space-y-1">
-              <p className="text-muted-foreground">Próx. Aproximação</p>
+              <p className="text-muted-foreground">Next Approach</p>
               <p className="font-semibold">
-                {new Date(asteroid.close_approach_date).toLocaleDateString("pt-BR")}
+                {new Date(asteroid.close_approach_date).toLocaleDateString(
+                  "en-US"
+                )}
               </p>
             </div>
           </div>
 
-          {/* Status da Simulação */}
+          {/* Simulation Status */}
           <div className="flex items-center justify-between pt-2">
             <Badge
               className={
@@ -87,24 +89,24 @@ export const ImpactControls = ({
               {simulationState.isAnimating ? (
                 <>
                   <Pause className="h-3 w-3 mr-1" />
-                  Animando
+                  Animating
                 </>
               ) : (
                 <>
                   <Play className="h-3 w-3 mr-1" />
-                  Pausado
+                  Paused
                 </>
               )}
             </Badge>
 
             <div className="text-xs text-muted-foreground">
-              Progresso: {(simulationState.animationProgress * 100).toFixed(0)}%
+              Progress: {(simulationState.animationProgress * 100).toFixed(0)}%
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Controles */}
+      {/* Controls */}
       <div className="grid grid-cols-2 gap-2">
         <Button
           onClick={onStartSimulation}
@@ -113,7 +115,7 @@ export const ImpactControls = ({
           size="sm"
         >
           <Play className="h-4 w-4 mr-1" />
-          Iniciar
+          Start
         </Button>
 
         <Button
@@ -123,11 +125,11 @@ export const ImpactControls = ({
           size="sm"
         >
           <RotateCcw className="h-4 w-4 mr-1" />
-          Reiniciar
+          Reset
         </Button>
       </div>
 
-      {/* Botões de Exportação */}
+      {/* Export Buttons */}
       <div className="grid grid-cols-2 gap-2">
         <Button
           onClick={onExportData}
@@ -136,7 +138,7 @@ export const ImpactControls = ({
           size="sm"
         >
           <Download className="h-4 w-4 mr-1" />
-          Exportar Dados
+          Export Data
         </Button>
 
         <Button
@@ -146,11 +148,11 @@ export const ImpactControls = ({
           size="sm"
         >
           <Image className="h-4 w-4 mr-1" />
-          Exportar PNG
+          Export PNG
         </Button>
       </div>
 
-      {/* Botão Fechar */}
+      {/* Close Button */}
       <Button
         onClick={onClose}
         variant="outline"
@@ -158,7 +160,7 @@ export const ImpactControls = ({
         size="sm"
       >
         <X className="h-4 w-4 mr-1" />
-        Fechar
+        Close
       </Button>
     </div>
   );

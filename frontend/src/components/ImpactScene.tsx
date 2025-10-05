@@ -13,7 +13,7 @@ interface ImpactSceneProps {
   trajectory: AsteroidTrajectory;
 }
 
-// Componente da Terra
+// Earth component
 const Earth = () => (
   <mesh position={[0, 0, 0]}>
     <sphereGeometry args={[1, 32, 32]} />
@@ -21,7 +21,7 @@ const Earth = () => (
   </mesh>
 );
 
-// Componente do Asteroide
+// Asteroid component
 const Asteroid = ({
   position,
   size = 0.1,
@@ -35,7 +35,7 @@ const Asteroid = ({
   </mesh>
 );
 
-// Componente da trajetória
+// Trajectory line component
 const TrajectoryLine = ({ trajectory }: { trajectory: AsteroidTrajectory }) => {
   const trajectoryPoints = useMemo(() => {
     const points: [number, number, number][] = [];
@@ -77,13 +77,13 @@ const TrajectoryLine = ({ trajectory }: { trajectory: AsteroidTrajectory }) => {
   );
 };
 
-// Componente principal da cena
+// Main scene content component
 const SceneContent = ({
   asteroid,
   simulationState,
   trajectory,
 }: ImpactSceneProps) => {
-  // Calcular tamanho do asteroide baseado na velocidade
+  // Calculate asteroid size based on velocity
   const asteroidSize = useMemo(() => {
     const velocity = parseFloat(asteroid.velocity_kms);
     return Math.max(0.05, Math.min(velocity / 100, 0.3));
@@ -91,12 +91,12 @@ const SceneContent = ({
 
   return (
     <>
-      {/* Iluminação */}
+      {/* Lighting */}
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 5, 5]} intensity={0.8} />
       <pointLight position={[-5, -5, -5]} intensity={0.3} />
 
-      {/* Controles de órbita */}
+      {/* Orbit controls */}
       <OrbitControls
         enablePan={true}
         enableZoom={true}
@@ -105,23 +105,23 @@ const SceneContent = ({
         maxDistance={20}
       />
 
-      {/* Grade e eixos */}
+      {/* Grid and axes */}
       <gridHelper args={[10, 20]} />
       <axesHelper args={[2]} />
 
-      {/* Terra */}
+      {/* Earth */}
       <Earth />
 
-      {/* Trajetória */}
+      {/* Trajectory */}
       <TrajectoryLine trajectory={trajectory} />
 
-      {/* Asteroide */}
+      {/* Asteroid */}
       <Asteroid
         position={simulationState.asteroidPosition}
         size={asteroidSize}
       />
 
-      {/* Informações do asteroide */}
+      {/* Asteroid information */}
       <mesh
         position={[
           simulationState.asteroidPosition.x + 0.5,

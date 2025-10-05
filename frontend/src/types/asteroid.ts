@@ -1,12 +1,12 @@
-// Tipos para Close Approach (Asteroides) - compatível com backend
+// Tipos para Close Approach (Asteroides) 
 export interface CelestialBodyCloseApproachData {
-  designation: string;        // ao invés de 'name'
-  close_approach_date: string; // ao invés de 'nextApproach'
-  distance_au: string;       // ao invés de 'distance' (number)
-  velocity_kms: string;      // ao invés de 'velocity' (number)
+  designation: string;       
+  close_approach_date: string; 
+  distance_au: string;      
+  velocity_kms: string;      
 }
 
-// Tipos para Horizon Data (Planetas) - compatível com backend
+// Tipos para Horizon Data (Planetas) 
 export type Planet = 'Mercury' | 'Venus' | 'Earth' | 'Mars' | 'Jupiter' | 'Saturn' | 'Uranus' | 'Neptune' | 'Sun';
 
 export interface HorizonData {
