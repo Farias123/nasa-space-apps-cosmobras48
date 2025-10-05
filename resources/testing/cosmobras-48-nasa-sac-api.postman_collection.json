@@ -1,0 +1,202 @@
+{
+	"info": {
+		"_postman_id": "86889e55-6cb7-4f4a-9eab-5b679ca0fc4a",
+		"name": "cosmobras-48-nasa-sac-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40959588"
+	},
+	"item": [
+		{
+			"name": "get_proximity_data",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8001/api/v1/cbtracking/proximity_data",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"api",
+						"v1",
+						"cbtracking",
+						"proximity_data"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_closest_object",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8001/api/v1/cbtracking/closest_object",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"api",
+						"v1",
+						"cbtracking",
+						"closest_object"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_horizon_data_custom_body",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8001/api/v1/cbtracking/horizon/custom_body?start_time=2025-01-01&stop_time=2025-02-01&step_size=1 d&eccentricity=0.000151&longitude_of_ascending_node=-123.817587&argument_of_perihelion=305.152266&mean_anomaly=78.639573&larger_semi_major_axis=1.064364962718066&orbital_inclination=0.052376&object_name=Test&epoch=2451545.0&frame=J2000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"api",
+						"v1",
+						"cbtracking",
+						"horizon",
+						"custom_body"
+					],
+					"query": [
+						{
+							"key": "start_time",
+							"value": "2025-01-01"
+						},
+						{
+							"key": "stop_time",
+							"value": "2025-02-01"
+						},
+						{
+							"key": "step_size",
+							"value": "1 d"
+						},
+						{
+							"key": "eccentricity",
+							"value": "0.000151"
+						},
+						{
+							"key": "longitude_of_ascending_node",
+							"value": "-123.817587"
+						},
+						{
+							"key": "argument_of_perihelion",
+							"value": "305.152266"
+						},
+						{
+							"key": "mean_anomaly",
+							"value": "78.639573"
+						},
+						{
+							"key": "larger_semi_major_axis",
+							"value": "1.064364962718066"
+						},
+						{
+							"key": "orbital_inclination",
+							"value": "0.052376"
+						},
+						{
+							"key": "object_name",
+							"value": "Test"
+						},
+						{
+							"key": "epoch",
+							"value": "2451545.0"
+						},
+						{
+							"key": "frame",
+							"value": "J2000"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_horizon_data_solar_system_single_planet",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8001/api/v1/cbtracking/horizon/solar_system/Earth?initial_date=2025-01-01&end_date=2025-02-01&step_size=1 d",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"api",
+						"v1",
+						"cbtracking",
+						"horizon",
+						"solar_system",
+						"Earth"
+					],
+					"query": [
+						{
+							"key": "initial_date",
+							"value": "2025-01-01"
+						},
+						{
+							"key": "end_date",
+							"value": "2025-02-01"
+						},
+						{
+							"key": "step_size",
+							"value": "1 d"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_horizon_data_solar_system_all_planets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8001/api/v1/cbtracking/horizon/solar_system?initial_date=2025-01-01&end_date=2025-02-01&step_size=1 d",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"api",
+						"v1",
+						"cbtracking",
+						"horizon",
+						"solar_system"
+					],
+					"query": [
+						{
+							"key": "initial_date",
+							"value": "2025-01-01"
+						},
+						{
+							"key": "end_date",
+							"value": "2025-02-01"
+						},
+						{
+							"key": "step_size",
+							"value": "1 d"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
