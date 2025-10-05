@@ -136,6 +136,9 @@ def plot_orbits_3d_threejs(
             "color": df["color"][0],
             "size": df["size"][0],
             "type": df["type"][0],
+            "close_approach_date": df["close_approach_date"][0] if "close_approach_date" in df.columns else None,
+            "magnitude": df["magnitude"][0] if "magnitude" in df.columns else None,
+            "velocity_kms": df["velocity_kms"][0] if "velocity_kms" in df.columns else None,
         }
 
     if not plot_data or max_steps == 0:
@@ -156,6 +159,11 @@ def plot_orbits_3d_threejs(
         #info-panel {{
             position: absolute; top: 10px; left: 10px;
             background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;
+        }}
+        #target-info-panel {{
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;
+            display: none; /* Começa oculto */
         }}
         #controls {{
             position: absolute; bottom: 20px; left: 50%;
@@ -178,6 +186,17 @@ def plot_orbits_3d_threejs(
     <div id="info-panel">
         <h2>Simulação de Órbita</h2>
         <div id="date-display">Data:</div>
+    </div>
+
+    <div id="target-info-panel">
+        <h3 id="target-name"></h3>
+        <p>
+            <span id="target-close-approach-label">Maior Aproximação: </span>
+            <a href="#" id="target-close-approach-date" style="color: #87CEFA; text-decoration: underline;"></a>
+        </p>
+        <p id="target-magnitude"></p>
+        <p id="target-velocity"></p>
+        <p id="target-distance-earth"></p>
     </div>
 
     <div id="controls">
@@ -273,6 +292,13 @@ def plot_orbits_3d_threejs(
         const playPauseBtn = document.getElementById('play-pause-btn');
         const slider = document.getElementById('timeline-slider');
         const dateDisplay = document.getElementById('date-display');
+        
+        const targetInfoPanel = document.getElementById('target-info-panel');
+        const targetName = document.getElementById('target-name');
+        const targetDistanceEarth = document.getElementById('target-distance-earth');
+        const targetCloseApproachDate = document.getElementById('target-close-approach-date');
+        const targetMagnitude = document.getElementById('target-magnitude');
+        const targetVelocity = document.getElementById('target-velocity');
 
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
@@ -283,6 +309,7 @@ def plot_orbits_3d_threejs(
 
         let currentStep = 0;
         let isPlaying = false;
+        let targetToFollow = null; // Variável para guardar o nome do objeto a ser seguido
 
         function updateScene(step) {{
             currentStep = Math.max(0, Math.min(step, {max_steps - 1}));
@@ -290,7 +317,7 @@ def plot_orbits_3d_threejs(
 
             // Atualiza a data usando a Terra como referência, se disponível
             if (simData['Terra'] && simData['Terra'].dates[currentStep]) {{
-                dateDisplay.textContent = `Data: ${{simData['Terra'].dates[currentStep]}}`;
+                dateDisplay.textContent = 'Data: ' + simData['Terra'].dates[currentStep];
             }}
 
             for (const name in celestialObjects) {{
@@ -311,6 +338,23 @@ def plot_orbits_3d_threejs(
                 const z = data.z[stepForObject];
                 obj.body.position.set(x, y, z);
             }}
+
+            // Atualiza o painel de informações do alvo, se houver um
+            if (targetToFollow && celestialObjects[targetToFollow]) {{
+                const targetObj = celestialObjects[targetToFollow];
+                const earthObj = celestialObjects['Terra'];
+
+                if (targetObj && earthObj) {{
+                    const distance = targetObj.body.position.distanceTo(earthObj.body.position);
+                    // Converte de AU para km para exibição
+                    const distanceKm = (distance * 149597870.7).toLocaleString('pt-BR', {{ maximumFractionDigits: 0 }});
+                    const distanceAu = distance.toFixed(4);
+                    targetDistanceEarth.textContent = 'Distância Terra: ' + distanceAu + ' AU (' + distanceKm + ' km)';
+                }}
+            }} else {{
+                // Esconde o painel se não houver alvo
+                targetInfoPanel.style.display = 'none';
+            }}
         }}
 
         playPauseBtn.addEventListener('click', () => {{
@@ -324,8 +368,6 @@ def plot_orbits_3d_threejs(
             updateScene(parseInt(e.target.value));
         }});
 
-        let lastClickedAsteroid = null;
-
         function onMouseClick(event) {{
             // Normaliza as coordenadas do mouse
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -337,12 +379,67 @@ def plot_orbits_3d_threejs(
             for (let i = 0; i < intersects.length; i++) {{
                 const clickedObject = intersects[i].object;
                 if (clickedObject.userData.type === 'asteroid') {{
-                    const name = clickedObject.userData.name;
-                    celestialObjects[name].orbit.visible = !celestialObjects[name].orbit.visible;
+                    const clickedName = clickedObject.userData.name;
+                    const wasVisible = celestialObjects[clickedName].orbit.visible;
+
+                    // Primeiro, esconde todas as órbitas de asteroides
+                    for (const name in celestialObjects) {{
+                        if (celestialObjects[name].data.type === 'asteroid') {{
+                            // Esconde a órbita
+                            celestialObjects[name].orbit.visible = false;
+                            // Se não for o clicado, esconde o corpo também
+                            if (name !== clickedName) {{
+                                celestialObjects[name].body.visible = false; // Esconde o corpo
+                                celestialObjects[name].body.children[0].visible = false; // Esconde a etiqueta
+                            }}
+                        }}
+                    }}
+
+                    // Define ou limpa o alvo a ser seguido
+                    if (wasVisible) {{
+                        targetToFollow = null; // Clicou no mesmo de novo, para de seguir e esconde o painel
+                        targetInfoPanel.style.display = 'none';
+                        // Mostra todos os asteroides novamente
+                        for (const name in celestialObjects) {{
+                            if (celestialObjects[name].data.type === 'asteroid') {{
+                                celestialObjects[name].body.visible = true; // Mostra o corpo
+                                celestialObjects[name].body.children[0].visible = true; // Mostra a etiqueta
+                            }}
+                        }}
+                    }} else {{
+                        celestialObjects[clickedName].orbit.visible = true; // Mostra a órbita do clicado
+                        targetToFollow = clickedName; // Define novo alvo
+                        // Mostra e atualiza o painel de informações
+                        const targetData = celestialObjects[clickedName].data;
+                        const approachDate = targetData.close_approach_date;
+                        targetName.textContent = clickedName;
+                        targetMagnitude.textContent = 'Magnitude Absoluta (H): ' + targetData.magnitude;
+                        targetVelocity.textContent = 'Velocidade Relativa: ' + targetData.velocity_kms + ' km/s';
+                        targetCloseApproachDate.textContent = approachDate;
+                        targetCloseApproachDate.dataset.date = approachDate; // Armazena a data para o clique
+                        targetInfoPanel.style.display = 'block';
+                    }}
                     break; // Para após encontrar o primeiro asteroide
                 }}
             }}
         }}
+
+        targetCloseApproachDate.addEventListener('click', (e) => {{
+            e.preventDefault(); // Impede que o link '#' navegue
+            const jumpDateStr = e.target.dataset.date;
+            if (!jumpDateStr) return;
+
+            // Encontra o índice correspondente na linha do tempo principal (da Terra)
+            const targetIndex = simData['Terra'].dates.findIndex(d => d.startsWith(jumpDateStr));
+
+            if (targetIndex !== -1) {{
+                // Para a animação e pula para a data
+                isPlaying = false;
+                playPauseBtn.textContent = 'Play';
+                updateScene(targetIndex);
+                console.log('Pulando para a data: ' + jumpDateStr + ' (índice: ' + targetIndex + ')');
+            }}
+        }});
 
         function animate() {{
             requestAnimationFrame(animate);
@@ -355,6 +452,19 @@ def plot_orbits_3d_threejs(
                 updateScene(nextStep);
             }}
 
+            // Lógica para seguir o alvo
+            if (targetToFollow && celestialObjects[targetToFollow]) {{
+                const targetObject = celestialObjects[targetToFollow];
+                const targetPosition = targetObject.body.position;
+
+                // Calcula a posição desejada da câmera (um pouco atrás e acima)
+                const desiredPosition = new THREE.Vector3().copy(targetPosition).add(new THREE.Vector3(0.3, 0.3, 0.3));
+
+                // Move suavemente a câmera e o ponto de foco
+                camera.position.lerp(desiredPosition, 0.05);
+                controls.target.lerp(targetPosition, 0.05);
+            }}
+
             controls.update();
             renderer.render(scene, camera);
             labelRenderer.render(scene, camera); // Renderiza as etiquetas
@@ -365,6 +475,19 @@ def plot_orbits_3d_threejs(
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        }});
+
+        // Se o usuário interagir com os controles, para de seguir o objeto
+        controls.addEventListener('start', () => {{
+            targetToFollow = null;
+            // Mostra todos os asteroides novamente
+            for (const name in celestialObjects) {{
+                if (celestialObjects[name].data.type === 'asteroid') {{
+                    celestialObjects[name].body.visible = true; // Mostra o corpo
+                    celestialObjects[name].body.children[0].visible = true; // Mostra a etiqueta
+                }}
+            }}
+            targetInfoPanel.style.display = 'none';
         }});
 
         window.addEventListener('click', onMouseClick);
@@ -382,17 +505,41 @@ def plot_orbits_3d_threejs(
         pass
 
 
-def get_asteroid_targets() -> dict:
+def _calculate_asteroid_size_from_magnitude(h: float) -> float:
+    """
+    Calcula um tamanho de esfera para a simulação a partir da magnitude absoluta (H) do asteroide.
+    A fórmula D(km) = 1329 / 10^(0.2*H) estima o diâmetro.
+    Esta função mapeia esse diâmetro para uma escala visualmente apropriada para a simulação.
+    Quanto menor 'h', maior o asteroide.
+
+    Args:
+        h: A magnitude absoluta do asteroide.
+
+    Returns:
+        O raio da esfera para a simulação.
+    """
+    if h is None:
+        return 0.005  # Tamanho padrão mínimo
+
+    # Mapeia a magnitude para um tamanho. Ajuste os valores para um melhor resultado visual.
+    # Magnitudes menores (objetos maiores) resultarão em esferas maiores.
+    return max(0.005, 0.1 / (h**2))
+
+
+def get_asteroid_targets(end_date_str: str) -> dict:
     """Busca uma lista de asteroides que farão aproximação da Terra (fly-by).
 
     usando a API JPL Small-Body Database.
+
+    Args:
+        end_date_str: A data final para a busca de aproximações, no formato 'YYYY-MM-DD'.
 
     Returns:
         Um dicionário de alvos de asteroides.
 
     """
     # Busca por asteroides com futuras aproximações da Terra
-    api_url = "https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.1AU&date-min=now&sort=dist"
+    api_url = f"https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.05AU&date-min={start_date}now&date-max={end_date_str}&sort=dist&limit=200"
     asteroid_targets = {}
 
     try:
@@ -408,18 +555,23 @@ def get_asteroid_targets() -> dict:
         for item in data["data"]:
             designation = item[0]  # Campo 'des'
             close_approach_date_str = item[3]  # Campo 'cd' (calendar date)
+            velocity_kms = item[7]  # Campo 'v_rel'
+            magnitude = float(item[8]) if item[8] else None  # Campo 'h'
 
             target_id = f'"DES={designation};"'  # Formata o ID para a API HORIZONS
 
-            # Gera uma cor aleatória e um tamanho pequeno para o asteroide
+            # Calcula o tamanho com base na magnitude e gera uma cor aleatória
+            size = _calculate_asteroid_size_from_magnitude(magnitude)
             asteroid_targets[designation] = {
                 "id": target_id,
                 "close_approach_date": close_approach_date_str.split(" ")[
                     0
                 ],  # Pega apenas a parte YYYY-MM-DD
                 "color": random.randint(0x888888, 0xFFFFFF),  # Cores claras
-                "size": 0.01,
+                "size": size,
                 "type": "asteroid",
+                "velocity_kms": velocity_kms,
+                "magnitude": magnitude,
             }
 
         return asteroid_targets
@@ -442,7 +594,7 @@ def get_closest_approach_target(days_ahead: int = 60) -> dict:
     params = {
         "date-min": "now",
         "date-max": f"+{days_ahead}",
-        "dist-max": "0.1AU",
+        "dist-max": "0.05AU",
         "sort": "dist",  # Ordena pelo mais próximo primeiro
     }
 
@@ -474,8 +626,8 @@ def get_closest_approach_target(days_ahead: int = 60) -> dict:
 if __name__ == "__main__":
     # --- PARÂMETROS DA SIMULAÇÃO ---
     from datetime import datetime, timedelta
-    start_date = "2024-10-01"
-    end_date = "2034-10-01"  # Simulação de 10 anos
+    start_date = "2025-01-01"
+    end_date = "2035-10-01"  # Simulação de 10 anos
     output_file = "simulacao_orbita_threejs.html"
 
     # 1. Define os alvos principais (planetas)
@@ -493,7 +645,7 @@ if __name__ == "__main__":
 
     # 2. Busca dinamicamente os asteroides com aproximação da Terra
     print("Buscando asteroides com aproximação da Terra...")
-    asteroid_targets = get_asteroid_targets()
+    asteroid_targets = get_asteroid_targets(end_date)
     all_targets.update(asteroid_targets)
 
     # --- EXECUÇÃO ---
@@ -513,6 +665,9 @@ if __name__ == "__main__":
                 "color": params["color"],
                 "size": params["size"],
                 "type": params["type"],
+                "close_approach_date": params.get("close_approach_date"), # Adiciona a data de aproximação
+                "velocity_kms": params.get("velocity_kms"),
+                "magnitude": params.get("magnitude"),
             }
 
     if trajectories_data:
@@ -521,6 +676,13 @@ if __name__ == "__main__":
                 pl.lit(data["color"]).alias("color"), pl.lit(data["size"]).alias("size")
             )
             .with_columns(pl.lit(data["type"]).alias("type"))
+            .with_columns(
+                pl.lit(data["close_approach_date"]).alias("close_approach_date")
+            )
+            .with_columns(pl.lit(data["velocity_kms"]).alias("velocity_kms"))
+            .with_columns(
+                pl.lit(data["magnitude"]).alias("magnitude")
+            )
             for name, data in trajectories_data.items() 
         }
         plot_orbits_3d_threejs(plot_input, output_file)
