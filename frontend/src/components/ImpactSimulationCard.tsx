@@ -80,96 +80,14 @@ export const ImpactSimulationCard = ({
               />
             </div>
 
-            {/* Informações Detalhadas */}
+            {/* Instruções */}
             <div className="lg:col-span-2 space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
-                Dados da Simulação
+                Instruções
               </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Informações do Asteroide */}
-                <div className="glass-card p-4 space-y-3">
-                  <h4 className="font-semibold text-sm text-primary">
-                    Asteroide
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Designação:</span>
-                      <span className="font-medium">
-                        {asteroid.designation}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Velocidade:</span>
-                      <span className="font-medium">
-                        {asteroid.velocity_kms} km/s
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Distância:</span>
-                      <span className="font-medium">
-                        {asteroid.distance_au} AU
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Próx. Aproximação:
-                      </span>
-                      <span className="font-medium">
-                        {new Date(
-                          asteroid.close_approach_date
-                        ).toLocaleDateString("pt-BR")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status da Simulação */}
-                <div className="glass-card p-4 space-y-3">
-                  <h4 className="font-semibold text-sm text-primary">
-                    Simulação
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Status:</span>
-                      <span
-                        className={`font-medium ${
-                          state.isAnimating
-                            ? "text-primary"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {state.isAnimating ? "Em Execução" : "Pausada"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Progresso:</span>
-                      <span className="font-medium">
-                        {(state.animationProgress * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Posição X:</span>
-                      <span className="font-medium">
-                        {state.asteroidPosition.x.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Posição Y:</span>
-                      <span className="font-medium">
-                        {state.asteroidPosition.y.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Instruções */}
+              
               <div className="glass-card p-4 bg-accent/10 border-accent/30">
-                <h4 className="font-semibold text-sm text-accent mb-2">
-                  Instruções
-                </h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>
                     • Use o mouse para rotacionar, fazer zoom e mover a câmera

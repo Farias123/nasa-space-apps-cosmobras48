@@ -63,9 +63,15 @@ export const ImpactControls = ({
               <p className="text-muted-foreground">Velocidade</p>
               <p className="font-semibold">{asteroidInfo.velocity} km/s</p>
             </div>
-            <div className="space-y-1 col-span-2">
+            <div className="space-y-1">
               <p className="text-muted-foreground">Distância Atual</p>
               <p className="font-semibold">{asteroidInfo.distance} AU</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-muted-foreground">Próx. Aproximação</p>
+              <p className="font-semibold">
+                {new Date(asteroid.close_approach_date).toLocaleDateString("pt-BR")}
+              </p>
             </div>
           </div>
 
