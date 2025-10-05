@@ -17,7 +17,7 @@ class NumericalSimulation:
 
         initial_meteor_configuration = [xi, yi, zi, vxi, vyi, vzi]
 
-        interval_subdivisions = len(solar_system_data["Mercury"]["x"])
+        interval_subdivisions = len(solar_system_data["Mercury"]["position_km"]["x"])
 
         absolute_interval = (
             datetime.strptime(end_date, "%Y-%m-%d")
@@ -50,12 +50,12 @@ class NumericalSimulation:
             data = {
                 p: {
                     "mass": solar_system_data[p]["mass"],
-                    "x": solar_system_data[p]["x"][step],
-                    "y": solar_system_data[p]["y"][step],
-                    "z": solar_system_data[p]["z"][step],
-                    "vx": solar_system_data[p]["vx"][step],
-                    "vy": solar_system_data[p]["vy"][step],
-                    "vz": solar_system_data[p]["vz"][step],
+                    "x": solar_system_data[p]["position_km"]["x"][step],
+                    "y": solar_system_data[p]["position_km"]["y"][step],
+                    "z": solar_system_data[p]["position_km"]["z"][step],
+                    "vx": solar_system_data[p]["velocity_km_s"]["vx"][step],
+                    "vy": solar_system_data[p]["velocity_km_s"]["vy"][step],
+                    "vz": solar_system_data[p]["velocity_km_s"]["vz"][step],
                 }
                 for p in planets
             }
@@ -79,7 +79,8 @@ class NumericalSimulation:
 
             date = solar_system_data["Mercury"]["dates"][step]
 
-            distance_earth = np.sqrt((next_step[0]-solar_system_data["Earth"]["x"][step])**2+(next_step[1]-solar_system_data["Earth"]["y"][step])**2+(next_step[2]-solar_system_data["Earth"]["z"][step])**2)
+            distance_earth = np.sqrt((next_step[0]-solar_system_data["Earth"]["position_km"]["x"][step])**2+(next_step[1]-solar_system_data["Earth"]["position_km"]["y"][step])**2+(next_step[2]-solar_system_data["Earth"]["position_km"]["z"][step])**2)
+
             initial_velocity = np.sqrt(vxi**2+vyi**2+vzi**2)
 
             colision_probability = self.collision_probability(radius_meteor,solar_system_data["Earth"]["radius"],distance_earth,initial_velocity,solar_system_data["Earth"]["mass"])
