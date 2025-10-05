@@ -56,7 +56,7 @@ services:
       options:
         max-size: '10m'
         max-file: '5'
-    command: [ "start" ]
+    command: ["dev" ]
     ports:
       - "3000:3000"
     volumes:
