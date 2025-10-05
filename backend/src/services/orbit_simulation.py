@@ -1,7 +1,7 @@
 import rebound
 from scipy.integrate import solve_ivp
 import numpy as np
-from get_horizons_data import request_horizons_data
+from get_horizons_data import request_data_horizons_solar_system
 from datetime import datetime
 
 
@@ -9,7 +9,7 @@ class NumericalSimulation:
     def full_period_simulation(
         self, mass_meteor, xi, yi, zi, vxi, vyi, vzi, initial_date, end_date, step_size
     ):
-        solar_system_data = request_horizons_data(
+        solar_system_data = request_data_horizons_solar_system(
             f"{initial_date}", f"{end_date}", f"{step_size}"
         )
 
@@ -28,10 +28,11 @@ class NumericalSimulation:
 
         full_meteor_configuration.append(initial_meteor_configuration)
 
+        meteor_dict = {}
+
         for step in range(interval_subdivisions):
             meteor_configuration = full_meteor_configuration[step]
 
-            solar_system_data["Sun"]["mass"]
 
             planets = [
                 "Mercury",
@@ -57,6 +58,16 @@ class NumericalSimulation:
                 for p in planets
             }
 
+            data["Sun"] = {
+                    "mass": solar_system_data["Sun"]["mass"],
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "vx": 0,
+                    "vy": 0,
+                    "vz": 0,
+                }
+
             # next_step = self.stepsize_simulation(data,mass_meteor,meteor_configuration,integration_interval,sun_mass)
             next_step = self.rgk_solver(
                 meteor_configuration, data, integration_interval
@@ -64,12 +75,25 @@ class NumericalSimulation:
 
             full_meteor_configuration.append(next_step)
 
-        return full_meteor_configuration
+            date = solar_system_data["Mercury"]["dates"][step]
+
+            meteor_dict[date] = {
+                    "mass": mass_meteor,
+                    "x": next_step[0],
+                    "y": next_step[1],
+                    "z": next_step[2],
+                    "vx": next_step[3],
+                    "vy": next_step[4],
+                    "vz": next_step[5]
+                }
+
+        return meteor_dict, solar_system_data
 
     def acceleration(self, t, meteor_configuration, data):
         G = 6.6743e-17
 
-        planets = [
+        celestial_body = [
+            "Sun",
             "Mercury",
             "Venus",
             "Earth",
@@ -83,7 +107,7 @@ class NumericalSimulation:
         r = meteor_configuration[:3]
         v = meteor_configuration[3:]
         a = np.zeros(3)
-        for p in planets:
+        for p in celestial_body:
             r_planet = np.array([data[p]["x"], data[p]["y"], data[p]["z"]])
             diff = r_planet - r
             dist = np.abs(np.linalg.norm(diff))
