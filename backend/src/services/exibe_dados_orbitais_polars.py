@@ -2,12 +2,11 @@ import requests
 import re
 import polars as pl
 import plotly.graph_objects as go
-from typing import Optional
 
 
 def get_horizons_vectors(
     target: str, start_time: str, stop_time: str, step_size: str = "1d"
-) -> Optional[pl.DataFrame]:
+) -> pl.DataFrame | None:
     """Busca vetores de posição (X, Y, Z) da API HORIZONS da NASA usando Polars.
 
     Args:
@@ -278,9 +277,5 @@ if __name__ == "__main__":
         min_index = distances.arg_min()
         closest_date = earth_df["CalendarDate"][min_index]
 
-        print("\n--- Verificação de Aproximação (Apophis 2029) ---")
-        print(f"Data da maior aproximação: {closest_date}")
-        print(f"Distância mínima calculada: {min_dist_au:.6f} AU ({min_dist_km:,.0f} km)")
-        print("----------------------------------------------------")
     else:
-        print("Não foi possível obter os dados para verificação.")
+        pass

@@ -2,12 +2,13 @@ import requests
 import re
 import polars as pl
 import json
-from typing import Optional, Dict
 import random
 
-def get_horizons_vectors(target: str, start_time: str, stop_time: str, step_size: str = '1d') -> Optional[pl.DataFrame]:
-    """
-    Busca vetores de posição (X, Y, Z) da API HORIZONS da NASA usando Polars.
+
+def get_horizons_vectors(
+    target: str, start_time: str, stop_time: str, step_size: str = "1d"
+) -> pl.DataFrame | None:
+    """Busca vetores de posição (X, Y, Z) da API HORIZONS da NASA usando Polars.
 
     Args:
         target: O nome ou ID do corpo celeste (ex: 'Apophis', '399' para Terra).
@@ -17,72 +18,73 @@ def get_horizons_vectors(target: str, start_time: str, stop_time: str, step_size
 
     Returns:
         Um DataFrame do Polars com as coordenadas X, Y, Z ou None em caso de erro.
+
     """
     api_url = "https://ssd.jpl.nasa.gov/api/horizons.api"
-    
+
     params = {
-        'format': 'json',
-        'COMMAND': target,
-        'OBJ_DATA': 'NO',
-        'MAKE_EPHEM': 'YES',
-        'EPHEM_TYPE': 'VECTORS',
-        'CENTER': '@sun',
-        'START_TIME': start_time,
-        'STOP_TIME': stop_time,
-        'STEP_SIZE': step_size,
-        'VEC_TABLE': '2',
+        "format": "json",
+        "COMMAND": target,
+        "OBJ_DATA": "NO",
+        "MAKE_EPHEM": "YES",
+        "EPHEM_TYPE": "VECTORS",
+        "CENTER": "@sun",
+        "START_TIME": start_time,
+        "STOP_TIME": stop_time,
+        "STEP_SIZE": step_size,
+        "VEC_TABLE": "2",
     }
 
     try:
-        print(f"Buscando dados de trajetória para: {target}...")
         response = requests.get(api_url, params=params)
         response.raise_for_status()
         data = response.json()
-        
-        if 'result' not in data:
-            print(f"Erro: Resposta da API não contém a chave 'result' para {target}.")
-            print(f"Resposta da API:\n---\n{data}\n---")
+
+        if "result" not in data:
             return None
 
-        eph_text = data['result']
-        
-        lines = eph_text.split('\n')
-        
+        eph_text = data["result"]
+
+        lines = eph_text.split("\n")
+
         try:
-            start_index = lines.index('$$SOE') + 1
-            end_index = lines.index('$$EOE')
+            start_index = lines.index("$$SOE") + 1
+            end_index = lines.index("$$EOE")
         except ValueError:
-            print(f"Erro: Marcadores $$SOE/$$EOE não encontrados para {target}.")
-            print(f"Resposta da API:\n---\n{eph_text}\n---")
             return None
 
         data_lines = lines[start_index:end_index]
-        
+
         records = []
         for i in range(0, len(data_lines), 3):
             line1 = data_lines[i]
-            line2 = data_lines[i+1]
-            line3 = data_lines[i+2]
+            line2 = data_lines[i + 1]
+            line3 = data_lines[i + 2]
 
-            dt_part, date_part = line1.split('=')
+            dt_part, date_part = line1.split("=")
             jdt_db = float(dt_part.strip())
-            calendar_date = date_part.replace('A.D.', '').strip()
+            calendar_date = date_part.replace("A.D.", "").strip()
 
-            pos_values = re.findall(r'[-+]?\d*\.\d+E[-+]?\d+', line2)
+            pos_values = re.findall(r"[-+]?\d*\.\d+E[-+]?\d+", line2)
             x, y, z = [float(v) for v in pos_values]
 
-            vel_values = re.findall(r'[-+]?\d*\.\d+E[-+]?\d+', line3)
+            vel_values = re.findall(r"[-+]?\d*\.\d+E[-+]?\d+", line3)
             vx, vy, vz = [float(v) for v in vel_values]
 
-            records.append({
-                "JDTDB": jdt_db,
-                "CalendarDate": calendar_date,
-                "X": x, "Y": y, "Z": z,
-                "VX": vx, "VY": vy, "VZ": vz,
-            })
+            records.append(
+                {
+                    "JDTDB": jdt_db,
+                    "CalendarDate": calendar_date,
+                    "X": x,
+                    "Y": y,
+                    "Z": z,
+                    "VX": vx,
+                    "VY": vy,
+                    "VZ": vz,
+                }
+            )
 
         if not records:
-            print(f"Nenhum registro de efeméride encontrado para {target}.")
             return None
 
         df = pl.DataFrame(records)
@@ -90,49 +92,51 @@ def get_horizons_vectors(target: str, start_time: str, stop_time: str, step_size
         au_km = 149597870.7
         for col_name in ["X", "Y", "Z"]:
             df = df.with_columns((pl.col(col_name) / au_km).alias(col_name))
-        
-        print(f"Dados para {target} obtidos com sucesso!")
+
         return df
 
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição para {target}: {e}")
-    except Exception as e:
-        print(f"Erro inesperado ao processar dados para {target}: {e}")
-        
+    except requests.exceptions.RequestException:
+        pass
+    except Exception:
+        pass
+
     return None
 
-def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filename: str = "orbit_simulation.html"):
-    """
-    Gera um arquivo HTML com uma simulação 3D interativa das órbitas usando three.js.
+
+def plot_orbits_3d_threejs(
+    trajectories: dict[str, pl.DataFrame],
+    output_filename: str = "orbit_simulation.html",
+):
+    """Gera um arquivo HTML com uma simulação 3D interativa das órbitas usando three.js.
 
     Args:
         trajectories: Dicionário onde a chave é o nome do objeto e o valor é o DataFrame Polars
                       com as colunas 'X', 'Y', 'Z' e 'CalendarDate'.
         output_filename: O nome do arquivo HTML a ser gerado.
+
     """
     plot_data = {}
     max_steps = 0
     # Encontra o número máximo de passos entre todas as trajetórias primeiro
-    for name, df in trajectories.items():
+    for _, df in trajectories.items():
         if not df.is_empty():
             max_steps = max(max_steps, len(df))
 
     for name, df in trajectories.items():
         if df.is_empty():
             continue
-        
+
         # Adiciona a lista de datas para CADA objeto
         plot_data[name] = {
             "x": df["X"].to_list(),
             "y": df["Y"].to_list(),
             "z": df["Z"].to_list(),
-            "dates": df["CalendarDate"].to_list(), # Adiciona datas individuais
+            "dates": df["CalendarDate"].to_list(),  # Adiciona datas individuais
             "color": df["color"][0],
             "size": df["size"][0],
         }
 
     if not plot_data or max_steps == 0:
-        print("Nenhum dado válido para plotar. Abortando a geração do HTML.")
         return
 
     json_data = json.dumps(plot_data, indent=2)
@@ -279,7 +283,7 @@ def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filenam
                 const data = obj.data;
                 // Garante que não tentemos acessar um índice que não existe para este objeto específico
                 const stepForObject = Math.min(currentStep, data.x.length - 1);
-                
+
                 const x = data.x[stepForObject];
                 const y = data.y[stepForObject];
                 const z = data.z[stepForObject];
@@ -293,7 +297,7 @@ def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filenam
                 for (let i = trailStart; i < trailEnd; i++) {{
                     orbitPoints.push(new THREE.Vector3(data.x[i], data.y[i], data.z[i]));
                 }}
-                
+
                 obj.orbit.geometry.setFromPoints(orbitPoints);
                 obj.orbit.geometry.computeBoundingSphere(); // Necessário para a visibilidade
             }}
@@ -343,14 +347,13 @@ def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filenam
     try:
         with open(output_filename, "w", encoding="utf-8") as f:
             f.write(html_template)
-        print(f"\nSimulação 3D gerada com sucesso em '{output_filename}'.")
-        print("Abra este arquivo em um navegador para visualizar.")
-    except IOError as e:
-        print(f"Erro ao escrever o arquivo HTML: {e}")
+    except OSError:
+        pass
 
-def get_asteroid_targets(limit: int = 10) -> Dict:
-    """
-    Busca uma lista de asteroides que farão aproximação da Terra (fly-by)
+
+def get_asteroid_targets(limit: int = 10) -> dict:
+    """Busca uma lista de asteroides que farão aproximação da Terra (fly-by).
+
     usando a API JPL Small-Body Database.
 
     Args:
@@ -358,8 +361,8 @@ def get_asteroid_targets(limit: int = 10) -> Dict:
 
     Returns:
         Um dicionário de alvos de asteroides.
+
     """
-    print(f"\nBuscando {limit} asteroides com aproximação da Terra (fly-by)...")
     # Busca por asteroides com futuras aproximações da Terra
     api_url = f"https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.1AU&date-min=now&sort=dist&limit={limit}"
     asteroid_targets = {}
@@ -370,46 +373,43 @@ def get_asteroid_targets(limit: int = 10) -> Dict:
         data = response.json()
 
         if "data" not in data or not data["data"]:
-            print("Não foi possível obter a lista de asteroides da API.")
             return {}
 
         # O campo 'des' (designation) é o nome do asteroide.
         # O campo 'fullname' pode conter caracteres que a API HORIZONS não gosta.
         for item in data["data"]:
-            fullname = item[0] # 'des' field
+            fullname = item[0]  # 'des' field
             target_id = f"{fullname};"
-            
+
             # Gera uma cor aleatória e um tamanho pequeno para o asteroide
             asteroid_targets[fullname] = {
-                'id': target_id,
-                'color': random.randint(0x888888, 0xFFFFFF), # Cores claras
-                'size': 0.01
+                "id": target_id,
+                "color": random.randint(0x888888, 0xFFFFFF),  # Cores claras
+                "size": 0.01,
             }
-        
-        print(f"{len(asteroid_targets)} asteroides encontrados com sucesso.")
+
         return asteroid_targets
 
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao buscar a lista de asteroides: {e}")
+    except requests.exceptions.RequestException:
         return {}
 
-def get_closest_approach_target(days_ahead: int = 60) -> Dict:
-    """
-    Busca o único objeto com a maior aproximação da Terra em um determinado período.
+
+def get_closest_approach_target(days_ahead: int = 60) -> dict:
+    """Busca o único objeto com a maior aproximação da Terra em um determinado período.
 
     Args:
         days_ahead: O número de dias no futuro para buscar a aproximação.
 
     Returns:
         Um dicionário contendo o alvo de maior aproximação, ou um dicionário vazio.
+
     """
-    print(f"\nBuscando objeto com maior aproximação nos próximos {days_ahead} dias...")
     api_url = "https://ssd-api.jpl.nasa.gov/cad.api"
     params = {
-        'date-min': 'now',
-        'date-max': f'+{days_ahead}',
-        'dist-max': '0.1AU',
-        'sort': 'dist'       # Ordena pelo mais próximo primeiro
+        "date-min": "now",
+        "date-max": f"+{days_ahead}",
+        "dist-max": "0.1AU",
+        "sort": "dist",  # Ordena pelo mais próximo primeiro
     }
 
     try:
@@ -418,59 +418,86 @@ def get_closest_approach_target(days_ahead: int = 60) -> Dict:
         data = response.json()
 
         if "data" not in data or not data["data"]:
-            print("Nenhum objeto com aproximação notável encontrado no período.")
             return {}
 
         # Como a API já está ordenada por distância ('sort=dist'), o primeiro item é o mais próximo.
         closest_item = data["data"][0]
-        name = closest_item[0] # Campo 'des' (designation)
+        name = closest_item[0]  # Campo 'des' (designation)
         target_id = f"{name};"
 
-        print(f"Objeto de maior aproximação encontrado: {name}")
         return {
-            name: {'id': target_id, 'color': 0xff00ff, 'size': 0.012} # Cor magenta para destaque
+            name: {
+                "id": target_id,
+                "color": 0xFF00FF,
+                "size": 0.012,
+            }  # Cor magenta para destaque
         }
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao buscar objeto de maior aproximação: {e}")
+    except requests.exceptions.RequestException:
         return {}
+
 
 if __name__ == "__main__":
     # --- PARÂMETROS DA SIMULAÇÃO ---
-    start_date = '2024-01-01'
-    end_date = '2124-01-01' # Simulação de 100 anos
+    start_date = "2024-01-01"
+    end_date = "2124-01-01"  # Simulação de 100 anos
     output_file = "simulacao_orbita_threejs.html"
-    
+
     # 1. Define os alvos principais (planetas)
     all_targets = {
-        'Mercurio': {'id': '199', 'color': 0x8c8c8c, 'size': 0.015},
-        'Venus':    {'id': '299', 'color': 0xd8a868, 'size': 0.02},
-        'Terra':    {'id': '399', 'color': 0x00aaff, 'size': 0.022},
-        'Marte':    {'id': '499', 'color': 0xff5733, 'size': 0.018},
-        'Jupiter':  {'id': '599', 'color': 0xc99039, 'size': 0.04},
-        'Saturno':  {'id': '699', 'color': 0xe3d9b1, 'size': 0.035},
-        'Urano':    {'id': '799', 'color': 0xa2e465, 'size': 0.03},
-        'Netuno':   {'id': '899', 'color': 0x3f54ba, 'size': 0.03},
-        'Plutao':   {'id': '999', 'color': 0xbfb5a6, 'size': 0.01},
+        "Mercurio": {"id": "199", "color": 0x8C8C8C, "size": 0.015},
+        "Venus": {"id": "299", "color": 0xD8A868, "size": 0.02},
+        "Terra": {"id": "399", "color": 0x00AAFF, "size": 0.022},
+        "Marte": {"id": "499", "color": 0xFF5733, "size": 0.018},
+        "Jupiter": {"id": "599", "color": 0xC99039, "size": 0.04},
+        "Saturno": {"id": "699", "color": 0xE3D9B1, "size": 0.035},
+        "Urano": {"id": "799", "color": 0xA2E465, "size": 0.03},
+        "Netuno": {"id": "899", "color": 0x3F54BA, "size": 0.03},
+        "Plutao": {"id": "999", "color": 0xBFB5A6, "size": 0.01},
         # Asteroides adicionados manualmente para garantir a renderização
-        'Apophis':   {'id': '"DES= 2099942;"', 'color': 0xffffff, 'size': 0.01},
-        '2025 SP23': {'id': '"DES= 54363842;"', 'color': 0xffa500, 'size': 0.01}, # Laranja
-        '2025 T0':   {'id': '"DES= 54363854;"', 'color': 0x00ff00, 'size': 0.01}, # Verde
-        '2025 TU1':  {'id': '"DES= 54363865;"', 'color': 0x00ffff, 'size': 0.01}, # Ciano
-        '2019 UT6':  {'id': '"DES= 54002019;"', 'color': 0xff00ff, 'size': 0.01}, # Magenta
-        '2025 SM15': {'id': '"DES= 54363831;"', 'color': 0xffff00, 'size': 0.01}, # Amarelo
+        "Apophis": {"id": '"DES= 2099942;"', "color": 0xFFFFFF, "size": 0.01},
+        "2025 SP23": {
+            "id": '"DES= 54363842;"',
+            "color": 0xFFA500,
+            "size": 0.01,
+        },  # Laranja
+        "2025 T0": {"id": '"DES= 54363854;"', "color": 0x00FF00, "size": 0.01},  # Verde
+        "2025 TU1": {
+            "id": '"DES= 54363865;"',
+            "color": 0x00FFFF,
+            "size": 0.01,
+        },  # Ciano
+        "2019 UT6": {
+            "id": '"DES= 54002019;"',
+            "color": 0xFF00FF,
+            "size": 0.01,
+        },  # Magenta
+        "2025 SM15": {
+            "id": '"DES= 54363831;"',
+            "color": 0xFFFF00,
+            "size": 0.01,
+        },  # Amarelo
     }
 
     # --- EXECUÇÃO ---
     trajectories_data = {}
     for name, params in all_targets.items():
-        df = get_horizons_vectors(params['id'], start_date, end_date, step_size='1d') # Usando passo diário
+        df = get_horizons_vectors(
+            params["id"], start_date, end_date, step_size="1d"
+        )  # Usando passo diário
         if df is not None and not df.is_empty():
             trajectories_data[name] = {
-                "dataframe": df, "color": params['color'], "size": params['size']
+                "dataframe": df,
+                "color": params["color"],
+                "size": params["size"],
             }
-    
+
     if trajectories_data:
-        plot_input = {name: data['dataframe'].with_columns(pl.lit(data['color']).alias('color'), pl.lit(data['size']).alias('size')) for name, data in trajectories_data.items()}
+        plot_input = {
+            name: data["dataframe"].with_columns(
+                pl.lit(data["color"]).alias("color"), pl.lit(data["size"]).alias("size")
+            )
+            for name, data in trajectories_data.items()
+        }
         plot_orbits_3d_threejs(plot_input, output_file)
     else:
-        print("\nNão foi possível gerar a simulação. Nenhum dado de trajetória foi obtido.")
+        pass
