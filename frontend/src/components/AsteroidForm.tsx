@@ -3,61 +3,46 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Asteroid, ThreatLevel } from '@/types/asteroid';
+import { CelestialBodyCloseApproachData } from '@/types/asteroid';
 import { Rocket, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AsteroidFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (asteroid: Asteroid) => void;
+  onSubmit: (asteroid: CelestialBodyCloseApproachData) => void;
 }
 
 export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps) => {
   const [formData, setFormData] = useState({
-    name: '',
-    size: '',
-    velocity: '',
-    orbit: '',
-    distance: '',
-    threatLevel: 'safe' as ThreatLevel,
-    description: '',
+    designation: '',
+    velocity_kms: '',
+    distance_au: '',
+    close_approach_date: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.size || !formData.velocity || !formData.orbit || !formData.distance) {
+    if (!formData.designation || !formData.velocity_kms || !formData.distance_au || !formData.close_approach_date) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
 
-    const newAsteroid: Asteroid = {
-      id: `custom-${Date.now()}`,
-      name: formData.name,
-      size: parseFloat(formData.size),
-      velocity: parseFloat(formData.velocity),
-      orbit: formData.orbit,
-      distance: parseFloat(formData.distance),
-      threatLevel: formData.threatLevel,
-      discoveryDate: new Date().toISOString(),
-      nextApproach: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      description: formData.description,
-      isFavorite: false,
+    const newAsteroid: CelestialBodyCloseApproachData = {
+      designation: formData.designation,
+      velocity_kms: formData.velocity_kms,
+      distance_au: formData.distance_au,
+      close_approach_date: formData.close_approach_date,
     };
 
     onSubmit(newAsteroid);
     toast.success('Asteroide cadastrado com sucesso!');
     setFormData({
-      name: '',
-      size: '',
-      velocity: '',
-      orbit: '',
-      distance: '',
-      threatLevel: 'safe',
-      description: '',
+      designation: '',
+      velocity_kms: '',
+      distance_au: '',
+      close_approach_date: '',
     });
     onOpenChange(false);
   };
@@ -78,99 +63,48 @@ export const AsteroidForm = ({ open, onOpenChange, onSubmit }: AsteroidFormProps
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="name">Nome do Asteroide *</Label>
+              <Label htmlFor="designation">Designação do Asteroide *</Label>
               <Input
-                id="name"
+                id="designation"
                 placeholder="Ex: Apophis"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.designation}
+                onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="size">Tamanho (metros) *</Label>
+              <Label htmlFor="velocity_kms">Velocidade (km/s) *</Label>
               <Input
-                id="size"
-                type="number"
-                placeholder="Ex: 370"
-                value={formData.size}
-                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                className="bg-input/50 border-border/50 focus:border-primary"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="velocity">Velocidade (km/s) *</Label>
-              <Input
-                id="velocity"
-                type="number"
-                step="0.1"
+                id="velocity_kms"
+                type="text"
                 placeholder="Ex: 7.4"
-                value={formData.velocity}
-                onChange={(e) => setFormData({ ...formData, velocity: e.target.value })}
+                value={formData.velocity_kms}
+                onChange={(e) => setFormData({ ...formData, velocity_kms: e.target.value })}
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="orbit">Tipo de Órbita *</Label>
-              <Select
-                value={formData.orbit}
-                onValueChange={(value) => setFormData({ ...formData, orbit: value })}
-              >
-                <SelectTrigger className="bg-input/50 border-border/50 focus:border-primary">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent className="glass-card border-primary/30">
-                  <SelectItem value="Apollo">Apollo</SelectItem>
-                  <SelectItem value="Aten">Aten</SelectItem>
-                  <SelectItem value="Amor">Amor</SelectItem>
-                  <SelectItem value="Atira">Atira</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="distance">Distância (milhões de km) *</Label>
+              <Label htmlFor="distance_au">Distância (AU) *</Label>
               <Input
-                id="distance"
-                type="number"
-                step="0.01"
+                id="distance_au"
+                type="text"
                 placeholder="Ex: 0.19"
-                value={formData.distance}
-                onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
+                value={formData.distance_au}
+                onChange={(e) => setFormData({ ...formData, distance_au: e.target.value })}
                 className="bg-input/50 border-border/50 focus:border-primary"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="threatLevel">Nível de Ameaça</Label>
-              <Select
-                value={formData.threatLevel}
-                onValueChange={(value) => setFormData({ ...formData, threatLevel: value as ThreatLevel })}
-              >
-                <SelectTrigger className="bg-input/50 border-border/50 focus:border-primary">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-card border-primary/30">
-                  <SelectItem value="safe">Seguro</SelectItem>
-                  <SelectItem value="low">Baixo</SelectItem>
-                  <SelectItem value="medium">Médio</SelectItem>
-                  <SelectItem value="high">Alto</SelectItem>
-                  <SelectItem value="critical">Crítico</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="description">Descrição (opcional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Adicione informações adicionais sobre o asteroide..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-input/50 border-border/50 focus:border-primary min-h-[100px]"
+              <Label htmlFor="close_approach_date">Data de Aproximação *</Label>
+              <Input
+                id="close_approach_date"
+                type="date"
+                value={formData.close_approach_date}
+                onChange={(e) => setFormData({ ...formData, close_approach_date: e.target.value })}
+                className="bg-input/50 border-border/50 focus:border-primary"
               />
             </div>
           </div>
