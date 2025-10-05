@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Gauge, MapPin, Star } from "lucide-react";
+import { Calendar, Gauge, MapPin } from "lucide-react";
 import { cn } from "@/helpers/utils";
 import { ImpactSimulationCard } from "./ImpactSimulationCard";
 
@@ -18,7 +18,6 @@ interface AsteroidDetailsProps {
   asteroid: CelestialBodyCloseApproachData | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onToggleFavorite: (designation: string) => void;
 }
 
 // Function to calculate threat level based on distance
@@ -53,7 +52,6 @@ export const AsteroidDetails = ({
   asteroid,
   open,
   onOpenChange,
-  onToggleFavorite,
 }: AsteroidDetailsProps) => {
   const [simulationOpen, setSimulationOpen] = useState(false);
 
@@ -75,14 +73,6 @@ export const AsteroidDetails = ({
                   Designation: {asteroid.designation}
                 </DialogDescription>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onToggleFavorite(asteroid.designation)}
-                className="transition-colors"
-              >
-                <Star className="h-6 w-6" />
-              </Button>
             </div>
           </DialogHeader>
 

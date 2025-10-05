@@ -7,7 +7,7 @@ import { AsteroidDetails } from "@/components/AsteroidDetails";
 import { AsteroidForm } from "@/components/AsteroidForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Satellite, Star } from "lucide-react";
+import { Plus, Search, Satellite } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -19,11 +19,6 @@ const Index = () => {
     useState<CelestialBodyCloseApproachData | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-
-  const handleToggleFavorite = (designation: string) => {
-    // For now, just show toast - favorite functionality will be implemented later
-    toast.success("Favorite updated!");
-  };
 
   const handleViewDetails = (asteroid: CelestialBodyCloseApproachData) => {
     setSelectedAsteroid(asteroid);
@@ -54,20 +49,20 @@ const Index = () => {
               <div className="bg-primary/20 p-3 rounded-lg glow-primary">
                 <Satellite className="h-8 w-8 text-primary" />
               </div>
-                  <div>
-                    <h1 className="text-3xl font-bold gradient-text">AstroWatch</h1>
-                    <p className="text-sm text-muted-foreground">
-                      Asteroid Monitoring System
-                    </p>
-                  </div>
+              <div>
+                <h1 className="text-3xl font-bold gradient-text">AstroWatch</h1>
+                <p className="text-sm text-muted-foreground">
+                  Asteroid Monitoring System
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => setFormOpen(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground glow-primary"
               >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Asteroid
+                <Plus className="h-4 w-4 mr-2" />
+                New Asteroid
               </Button>
             </div>
           </div>
@@ -75,12 +70,12 @@ const Index = () => {
           {/* Search Bar */}
           <div className="mt-6 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search by asteroid designation..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 bg-card/50 border-border/50 focus:border-primary h-12 text-base"
-                />
+            <Input
+              placeholder="Search by asteroid designation..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 bg-card/50 border-border/50 focus:border-primary h-12 text-base"
+            />
           </div>
         </div>
       </header>
@@ -121,7 +116,6 @@ const Index = () => {
                   <AsteroidCard
                     key={asteroid.designation}
                     asteroid={asteroid}
-                    onToggleFavorite={handleToggleFavorite}
                     onViewDetails={handleViewDetails}
                   />
                 ))}
@@ -136,7 +130,6 @@ const Index = () => {
         asteroid={selectedAsteroid}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
-        onToggleFavorite={handleToggleFavorite}
       />
 
       <AsteroidForm

@@ -8,12 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Star, Info, Rocket, AlertTriangle } from "lucide-react";
+import { Info, Rocket, AlertTriangle } from "lucide-react";
 import { cn } from "@/helpers/utils";
 
 interface AsteroidCardProps {
   asteroid: CelestialBodyCloseApproachData;
-  onToggleFavorite: (designation: string) => void;
   onViewDetails: (asteroid: CelestialBodyCloseApproachData) => void;
 }
 
@@ -47,7 +46,6 @@ const threatLabels = {
 
 export const AsteroidCard = ({
   asteroid,
-  onToggleFavorite,
   onViewDetails,
 }: AsteroidCardProps) => {
   const threatLevel = getThreatLevel(asteroid.distance_au);
@@ -68,14 +66,6 @@ export const AsteroidCard = ({
               Designation: {asteroid.designation}
             </CardDescription>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onToggleFavorite(asteroid.designation)}
-            className="transition-colors"
-          >
-            <Star className="h-5 w-5" />
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
