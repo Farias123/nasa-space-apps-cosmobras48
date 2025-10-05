@@ -1,28 +1,30 @@
-import { useState } from 'react';
-import { Asteroid, ThreatLevel } from '@/types/asteroid';
-import { mockAsteroids } from '@/data/mockAsteroids';
-import { AsteroidCard } from '@/components/AsteroidCard';
-import { FilterSidebar } from '@/components/FilterSidebar';
-import { AsteroidDetails } from '@/components/AsteroidDetails';
-import { AsteroidForm } from '@/components/AsteroidForm';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Satellite, Star } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Asteroid, ThreatLevel } from "@/types/asteroid";
+import { mockAsteroids } from "@/data/mockAsteroids";
+import { AsteroidCard } from "@/components/AsteroidCard";
+import { FilterSidebar } from "@/components/FilterSidebar";
+import { AsteroidDetails } from "@/components/AsteroidDetails";
+import { AsteroidForm } from "@/components/AsteroidForm";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Satellite, Star } from "lucide-react";
+import { toast } from "sonner";
 
 const Index = () => {
   const [asteroids, setAsteroids] = useState<Asteroid[]>(mockAsteroids);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedThreats, setSelectedThreats] = useState<ThreatLevel[]>([
-    'safe',
-    'low',
-    'medium',
-    'high',
-    'critical',
+    "safe",
+    "low",
+    "medium",
+    "high",
+    "critical",
   ]);
   const [maxDistance, setMaxDistance] = useState(15);
   const [minSize, setMinSize] = useState(0);
-  const [selectedAsteroid, setSelectedAsteroid] = useState<Asteroid | null>(null);
+  const [selectedAsteroid, setSelectedAsteroid] = useState<Asteroid | null>(
+    null
+  );
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -35,7 +37,7 @@ const Index = () => {
           : asteroid
       )
     );
-    toast.success('Favorito atualizado!');
+    toast.success("Favorito atualizado!");
   };
 
   const handleViewDetails = (asteroid: Asteroid) => {
@@ -64,7 +66,13 @@ const Index = () => {
     const matchesSize = asteroid.size >= minSize;
     const matchesFavorite = !showFavoritesOnly || asteroid.isFavorite;
 
-    return matchesSearch && matchesThreat && matchesDistance && matchesSize && matchesFavorite;
+    return (
+      matchesSearch &&
+      matchesThreat &&
+      matchesDistance &&
+      matchesSize &&
+      matchesFavorite
+    );
   });
 
   const favoriteCount = asteroids.filter((a) => a.isFavorite).length;
@@ -88,11 +96,11 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-3">
               <Button
-                variant={showFavoritesOnly ? 'default' : 'outline'}
+                variant={showFavoritesOnly ? "default" : "outline"}
                 onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                 className="border-primary/50 hover:bg-primary/10"
               >
-                <Star className={showFavoritesOnly ? 'fill-current' : ''} />
+                <Star className={showFavoritesOnly ? "fill-current" : ""} />
                 Favoritos ({favoriteCount})
               </Button>
               <Button
@@ -137,7 +145,9 @@ const Index = () => {
           <main className="flex-1">
             <div className="mb-6">
               <h2 className="text-2xl font-bold">
-                {showFavoritesOnly ? 'Asteroides Favoritos' : 'Todos os Asteroides'}
+                {showFavoritesOnly
+                  ? "Asteroides Favoritos"
+                  : "Todos os Asteroides"}
               </h2>
               <p className="text-muted-foreground mt-1">
                 {filteredAsteroids.length} asteroide(s) encontrado(s)
@@ -147,7 +157,9 @@ const Index = () => {
             {filteredAsteroids.length === 0 ? (
               <div className="text-center py-16">
                 <Satellite className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <h3 className="text-xl font-semibold mb-2">Nenhum asteroide encontrado</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Nenhum asteroide encontrado
+                </h3>
                 <p className="text-muted-foreground">
                   Tente ajustar os filtros ou adicionar um novo asteroide
                 </p>
