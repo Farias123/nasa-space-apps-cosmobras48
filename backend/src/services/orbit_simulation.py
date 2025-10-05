@@ -1,3 +1,5 @@
+from bdb import effective
+
 import rebound
 from scipy.integrate import solve_ivp
 import numpy as np
@@ -7,7 +9,7 @@ from datetime import datetime
 
 class NumericalSimulation:
     def full_period_simulation(
-        self, mass_meteor, xi, yi, zi, vxi, vyi, vzi, initial_date, end_date, step_size
+        self,radius_meteor, mass_meteor, xi, yi, zi, vxi, vyi, vzi, initial_date, end_date, step_size
     ):
         solar_system_data = request_data_horizons_solar_system(
             f"{initial_date}", f"{end_date}", f"{step_size}"
@@ -77,6 +79,10 @@ class NumericalSimulation:
 
             date = solar_system_data["Mercury"]["dates"][step]
 
+            distance_earth = np.sqrt((next_step[0]-solar_system_data["Earth"]["x"][step])**2+(next_step[1]-solar_system_data["Earth"]["y"][step])**2+(next_step[2]-solar_system_data["Earth"]["z"][step])**2)
+            initial_velocity = np.sqrt(vxi**2+vyi**2+vzi**2)
+
+            colision_probability = self.collision_probability(radius_meteor,solar_system_data["Earth"]["radius"],distance_earth,initial_velocity,solar_system_data["Earth"]["mass"])
 
             meteor_dict[date] = {
                     "mass": mass_meteor,
@@ -86,11 +92,30 @@ class NumericalSimulation:
                     "vx": next_step[3],
                     "vy": next_step[4],
                     "vz": next_step[5],
-                    "distance_earth": np.sqrt((next_step[0]-solar_system_data["Earth"]["x"][step])**2+(next_step[1]-solar_system_data["Earth"]["y"][step])**2+(next_step[2]-solar_system_data["Earth"]["z"][step])**2)
+                    "distance_earth": distance_earth,
+                    "colision_probability":colision_probability
                 }
 
 
+        print(meteor_dict)
         return meteor_dict, solar_system_data
+
+    def collision_probability(self,meteor_radius,earth_radius,distance_earth_date,initial_velocity,earth_mass): # doi:10.1111/j.1365-2966.2006.11349.x
+
+        G = 6.6743e-17
+
+        escape_velocity = np.sqrt(2*G*earth_mass/earth_radius)
+
+        gravitational_focusing = (1 + (escape_velocity/initial_velocity)**2)
+
+        geometric_cross_section = np.pi*(earth_radius+meteor_radius)**2
+
+        effective_cross_section = gravitational_focusing*geometric_cross_section
+
+        probability_date = effective_cross_section/(np.pi*(distance_earth_date)**2)
+
+        return probability_date
+
 
     def acceleration(self, t, meteor_configuration, data):
         G = 6.6743e-17
@@ -247,7 +272,7 @@ class NumericalSimulation:
 
 
 NumericalSimulation().full_period_simulation(
-    1000,
+    10,1000,
     -1.310740060953714e8,
     1.05417337460535e8,
     -8.172569656297214e6,
