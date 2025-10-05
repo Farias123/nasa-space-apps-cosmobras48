@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Asteroid, ThreatLevel } from "@/types/asteroid";
+import { CelestialBodyCloseApproachData } from "@/types/asteroid";
 import { mockAsteroids } from "@/data/mockAsteroids";
 import { AsteroidCard } from "@/components/AsteroidCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
@@ -11,71 +11,36 @@ import { Plus, Search, Satellite, Star } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
-  const [asteroids, setAsteroids] = useState<Asteroid[]>(mockAsteroids);
+  const [asteroids, setAsteroids] = useState<CelestialBodyCloseApproachData[]>(mockAsteroids);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedThreats, setSelectedThreats] = useState<ThreatLevel[]>([
-    "safe",
-    "low",
-    "medium",
-    "high",
-    "critical",
-  ]);
   const [maxDistance, setMaxDistance] = useState(15);
-  const [minSize, setMinSize] = useState(0);
-  const [selectedAsteroid, setSelectedAsteroid] = useState<Asteroid | null>(
+  const [selectedAsteroid, setSelectedAsteroid] = useState<CelestialBodyCloseApproachData | null>(
     null
   );
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
-  const handleToggleFavorite = (id: string) => {
-    setAsteroids((prev) =>
-      prev.map((asteroid) =>
-        asteroid.id === id
-          ? { ...asteroid, isFavorite: !asteroid.isFavorite }
-          : asteroid
-      )
-    );
+  const handleToggleFavorite = (designation: string) => {
+    // Por enquanto, apenas mostra toast - funcionalidade de favoritos será implementada depois
     toast.success("Favorito atualizado!");
   };
 
-  const handleViewDetails = (asteroid: Asteroid) => {
+  const handleViewDetails = (asteroid: CelestialBodyCloseApproachData) => {
     setSelectedAsteroid(asteroid);
     setDetailsOpen(true);
   };
 
-  const handleToggleThreat = (threat: ThreatLevel) => {
-    setSelectedThreats((prev) =>
-      prev.includes(threat)
-        ? prev.filter((t) => t !== threat)
-        : [...prev, threat]
-    );
-  };
-
-  const handleAddAsteroid = (asteroid: Asteroid) => {
+  const handleAddAsteroid = (asteroid: CelestialBodyCloseApproachData) => {
     setAsteroids((prev) => [asteroid, ...prev]);
   };
 
   const filteredAsteroids = asteroids.filter((asteroid) => {
-    const matchesSearch =
-      asteroid.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asteroid.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesThreat = selectedThreats.includes(asteroid.threatLevel);
-    const matchesDistance = asteroid.distance <= maxDistance;
-    const matchesSize = asteroid.size >= minSize;
-    const matchesFavorite = !showFavoritesOnly || asteroid.isFavorite;
+    const matchesSearch = asteroid.designation.toLowerCase().includes(searchQuery.toLowerCase());
+    const distance = parseFloat(asteroid.distance_au);
+    const matchesDistance = distance <= maxDistance;
 
-    return (
-      matchesSearch &&
-      matchesThreat &&
-      matchesDistance &&
-      matchesSize &&
-      matchesFavorite
-    );
+    return matchesSearch && matchesDistance;
   });
-
-  const favoriteCount = asteroids.filter((a) => a.isFavorite).length;
 
   return (
     <div className="min-h-screen pb-12">
@@ -96,14 +61,6 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-3">
               <Button
-                variant={showFavoritesOnly ? "default" : "outline"}
-                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                className="border-primary/50 hover:bg-primary/10"
-              >
-                <Star className={showFavoritesOnly ? "fill-current" : ""} />
-                Favoritos ({favoriteCount})
-              </Button>
-              <Button
                 onClick={() => setFormOpen(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground glow-primary"
               >
@@ -117,7 +74,7 @@ const Index = () => {
           <div className="mt-6 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome ou ID do asteroide..."
+              placeholder="Buscar por designação do asteroide..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 bg-card/50 border-border/50 focus:border-primary h-12 text-base"
@@ -132,12 +89,8 @@ const Index = () => {
           {/* Sidebar */}
           <aside className="w-64 flex-shrink-0">
             <FilterSidebar
-              selectedThreats={selectedThreats}
-              onToggleThreat={handleToggleThreat}
               maxDistance={maxDistance}
               onDistanceChange={setMaxDistance}
-              minSize={minSize}
-              onSizeChange={setMinSize}
             />
           </aside>
 
@@ -145,9 +98,7 @@ const Index = () => {
           <main className="flex-1">
             <div className="mb-6">
               <h2 className="text-2xl font-bold">
-                {showFavoritesOnly
-                  ? "Asteroides Favoritos"
-                  : "Todos os Asteroides"}
+                Todos os Asteroides
               </h2>
               <p className="text-muted-foreground mt-1">
                 {filteredAsteroids.length} asteroide(s) encontrado(s)
@@ -168,7 +119,7 @@ const Index = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredAsteroids.map((asteroid) => (
                   <AsteroidCard
-                    key={asteroid.id}
+                    key={asteroid.designation}
                     asteroid={asteroid}
                     onToggleFavorite={handleToggleFavorite}
                     onViewDetails={handleViewDetails}
