@@ -1,0 +1,407 @@
+import requests
+import re
+import polars as pl
+import json
+from typing import Optional, Dict
+import random
+
+def get_horizons_vectors(target: str, start_time: str, stop_time: str) -> Optional[pl.DataFrame]:
+    """
+    Busca vetores de posição (X, Y, Z) da API HORIZONS da NASA usando Polars.
+
+    Args:
+        target: O nome ou ID do corpo celeste (ex: 'Apophis', '399' para Terra).
+        start_time: Data de início no formato 'YYYY-MM-DD'.
+        stop_time: Data de fim no formato 'YYYY-MM-DD'.
+
+    Returns:
+        Um DataFrame do Polars com as coordenadas X, Y, Z ou None em caso de erro.
+    """
+    api_url = "https://ssd.jpl.nasa.gov/api/horizons.api"
+    
+    params = {
+        'format': 'json',
+        'COMMAND': target,
+        'OBJ_DATA': 'NO',
+        'MAKE_EPHEM': 'YES',
+        'EPHEM_TYPE': 'VECTORS',
+        'CENTER': '@sun',
+        'START_TIME': start_time,
+        'STOP_TIME': stop_time,
+        'STEP_SIZE': '1d',
+        'VEC_TABLE': '2',
+    }
+
+    try:
+        print(f"Buscando dados de trajetória para: {target}...")
+        response = requests.get(api_url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        if 'result' not in data:
+            print(f"Erro: Resposta da API não contém a chave 'result' para {target}.")
+            print(f"Resposta da API:\n---\n{data}\n---")
+            return None
+
+        eph_text = data['result']
+        
+        lines = eph_text.split('\n')
+        
+        try:
+            start_index = lines.index('$$SOE') + 1
+            end_index = lines.index('$$EOE')
+        except ValueError:
+            print(f"Erro: Marcadores $$SOE/$$EOE não encontrados para {target}.")
+            print(f"Resposta da API:\n---\n{eph_text}\n---")
+            return None
+
+        data_lines = lines[start_index:end_index]
+        
+        records = []
+        for i in range(0, len(data_lines), 3):
+            line1 = data_lines[i]
+            line2 = data_lines[i+1]
+            line3 = data_lines[i+2]
+
+            dt_part, date_part = line1.split('=')
+            jdt_db = float(dt_part.strip())
+            calendar_date = date_part.replace('A.D.', '').strip()
+
+            pos_values = re.findall(r'[-+]?\d*\.\d+E[-+]?\d+', line2)
+            x, y, z = [float(v) for v in pos_values]
+
+            vel_values = re.findall(r'[-+]?\d*\.\d+E[-+]?\d+', line3)
+            vx, vy, vz = [float(v) for v in vel_values]
+
+            records.append({
+                "JDTDB": jdt_db,
+                "CalendarDate": calendar_date,
+                "X": x, "Y": y, "Z": z,
+                "VX": vx, "VY": vy, "VZ": vz,
+            })
+
+        if not records:
+            print(f"Nenhum registro de efeméride encontrado para {target}.")
+            return None
+
+        df = pl.DataFrame(records)
+
+        au_km = 149597870.7
+        for col_name in ["X", "Y", "Z"]:
+            df = df.with_columns((pl.col(col_name) / au_km).alias(col_name))
+        
+        print(f"Dados para {target} obtidos com sucesso!")
+        return df
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro na requisição para {target}: {e}")
+    except Exception as e:
+        print(f"Erro inesperado ao processar dados para {target}: {e}")
+        
+    return None
+
+def plot_orbits_3d_threejs(trajectories: Dict[str, pl.DataFrame], output_filename: str = "orbit_simulation.html"):
+    """
+    Gera um arquivo HTML com uma simulação 3D interativa das órbitas usando three.js.
+
+    Args:
+        trajectories: Dicionário onde a chave é o nome do objeto e o valor é o DataFrame Polars
+                      com as colunas 'X', 'Y', 'Z' e 'CalendarDate'.
+        output_filename: O nome do arquivo HTML a ser gerado.
+    """
+    plot_data = {}
+    max_steps = 0
+    for name, df in trajectories.items():
+        if df.is_empty():
+            continue
+        
+        plot_data[name] = {
+            "x": df["X"].to_list(),
+            "y": df["Y"].to_list(),
+            "z": df["Z"].to_list(),
+            "color": df["color"][0],
+            "size": df["size"][0],
+        }
+        if "dates" not in plot_data:
+            plot_data["dates"] = df["CalendarDate"].to_list()
+            max_steps = len(plot_data["dates"])
+
+    if not plot_data or max_steps == 0:
+        print("Nenhum dado válido para plotar. Abortando a geração do HTML.")
+        return
+
+    json_data = json.dumps(plot_data, indent=2)
+
+    html_template = f"""
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação de Órbita 3D com Three.js</title>
+    <style>
+        body {{ margin: 0; background-color: #000; color: #fff; font-family: sans-serif; overflow: hidden; }}
+        canvas {{ display: block; }}
+        #info-panel {{
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;
+        }}
+        #controls {{
+            position: absolute; bottom: 20px; left: 50%;
+            transform: translateX(-50%); display: flex; align-items: center;
+            background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;
+        }}
+        #controls button, #controls input, #controls label {{ margin: 0 10px; }}
+        .label {{
+            color: #FFF;
+            font-family: sans-serif;
+            padding: 2px 5px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none; /* Para não interferir com os controles do mouse */
+        }}
+    </style>
+</head>
+<body>
+    <div id="info-panel">
+        <h2>Simulação de Órbita</h2>
+        <div id="date-display">Data:</div>
+    </div>
+
+    <div id="controls">
+        <button id="play-pause-btn">Play</button>
+        <label for="timeline-slider">Timeline:</label>
+        <input type="range" id="timeline-slider" min="0" max="{max_steps - 1}" value="0" step="1" style="width: 300px;">
+    </div>
+
+    <script type="importmap">
+    {{
+        "imports": {{
+            "three": "https://unpkg.com/three@0.159.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.159.0/examples/jsm/"
+        }}
+    }}
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import {{ OrbitControls }} from 'three/addons/controls/OrbitControls.js';
+        import {{ CSS2DRenderer, CSS2DObject }} from 'three/addons/renderers/CSS2DRenderer.js';
+
+        const simData = {json_data};
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000);
+        camera.position.set(1.8, 1.8, 1.8);
+
+        const renderer = new THREE.WebGLRenderer({{ antialias: true }});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Renderizador para as etiquetas de texto (labels)
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0px';
+        labelRenderer.domElement.style.pointerEvents = 'none'; // Permite que cliques passem através do container de labels
+        document.body.appendChild(labelRenderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        const sunGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+        const sunMaterial = new THREE.MeshBasicMaterial({{ color: 0xffff00 }});
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        scene.add(sun);
+
+        scene.add(new THREE.AmbientLight(0x606060));
+
+        const celestialObjects = {{}};
+
+        for (const name in simData) {{
+            if (name === 'dates') continue;
+
+            const bodyData = simData[name];
+            const color = bodyData.color;
+
+            const bodyGeometry = new THREE.SphereGeometry(bodyData.size, 20, 20);
+            const bodyMaterial = new THREE.MeshBasicMaterial({{ color: color }});
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            scene.add(body);
+
+            // Cria a etiqueta com o nome do corpo celeste
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'label';
+            labelDiv.textContent = name;
+            labelDiv.style.color = new THREE.Color(color).getStyle();
+
+            const nameLabel = new CSS2DObject(labelDiv);
+            nameLabel.position.set(0, 0.03, 0); // Desloca um pouco acima do objeto
+            body.add(nameLabel); // Anexa a etiqueta ao corpo celeste
+
+            const orbitPoints = [];
+            for(let i=0; i < bodyData.x.length; i++) {{
+                orbitPoints.push(new THREE.Vector3(bodyData.x[i], bodyData.y[i], bodyData.z[i]));
+            }}
+            const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+            const orbitMaterial = new THREE.LineBasicMaterial({{ color: color, opacity: 0.5, transparent: true }});
+            const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+            scene.add(orbit);
+
+            celestialObjects[name] = {{ body, orbit, data: bodyData }};
+        }}
+
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const slider = document.getElementById('timeline-slider');
+        const dateDisplay = document.getElementById('date-display');
+
+        let currentStep = 0;
+        let isPlaying = false;
+
+        function updateScene(step) {{
+            currentStep = Math.max(0, Math.min(step, {max_steps - 1}));
+            slider.value = currentStep;
+            dateDisplay.textContent = `Data: ${{simData.dates[currentStep]}}`;
+
+            for (const name in celestialObjects) {{
+                const obj = celestialObjects[name];
+                const data = obj.data;
+                obj.body.position.set(data.x[currentStep], data.y[currentStep], data.z[currentStep]);
+            }}
+        }}
+
+        playPauseBtn.addEventListener('click', () => {{
+            isPlaying = !isPlaying;
+            playPauseBtn.textContent = isPlaying ? 'Pause' : 'Play';
+        }});
+
+        slider.addEventListener('input', (e) => {{
+            isPlaying = false;
+            playPauseBtn.textContent = 'Play';
+            updateScene(parseInt(e.target.value));
+        }});
+
+        function animate() {{
+            requestAnimationFrame(animate);
+
+            if (isPlaying) {{
+                let nextStep = currentStep + 1;
+                if (nextStep >= {max_steps}) {{
+                    nextStep = 0; // Reinicia a animação
+                }}
+                updateScene(nextStep);
+            }}
+
+            controls.update();
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera); // Renderiza as etiquetas
+        }}
+
+        window.addEventListener('resize', () => {{
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        }});
+
+        updateScene(0);
+        animate();
+    </script>
+</body>
+</html>
+"""
+
+    try:
+        with open(output_filename, "w", encoding="utf-8") as f:
+            f.write(html_template)
+        print(f"\nSimulação 3D gerada com sucesso em '{output_filename}'.")
+        print("Abra este arquivo em um navegador para visualizar.")
+    except IOError as e:
+        print(f"Erro ao escrever o arquivo HTML: {e}")
+
+def get_asteroid_targets(limit: int = 10) -> Dict:
+    """
+    Busca uma lista de asteroides que farão aproximação da Terra (fly-by)
+    usando a API JPL Small-Body Database.
+
+    Args:
+        limit: O número máximo de asteroides a serem buscados.
+
+    Returns:
+        Um dicionário de alvos de asteroides.
+    """
+    print(f"\nBuscando {limit} asteroides com aproximação da Terra (fly-by)...")
+    # Busca por asteroides com futuras aproximações da Terra
+    api_url = f"https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.1AU&date-min=now&sort=dist&limit={limit}"
+    asteroid_targets = {}
+
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        data = response.json()
+
+        if "data" not in data or not data["data"]:
+            print("Não foi possível obter a lista de asteroides da API.")
+            return {}
+
+        # O campo 'des' (designation) é o nome do asteroide.
+        # O campo 'fullname' pode conter caracteres que a API HORIZONS não gosta.
+        for item in data["data"]:
+            fullname = item[0] # 'des' field
+            target_id = f"{fullname};"
+            
+            # Gera uma cor aleatória e um tamanho pequeno para o asteroide
+            asteroid_targets[fullname] = {
+                'id': target_id,
+                'color': random.randint(0x888888, 0xFFFFFF), # Cores claras
+                'size': 0.01
+            }
+        
+        print(f"{len(asteroid_targets)} asteroides encontrados com sucesso.")
+        return asteroid_targets
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar a lista de asteroides: {e}")
+        return {}
+
+if __name__ == "__main__":
+    # --- PARÂMETROS DA SIMULAÇÃO ---
+    start_date = '2024-01-01'
+    end_date = '2124-01-01' # Simulação de 100 anos
+    output_file = "simulacao_orbita_threejs.html"
+    
+    # 1. Define os alvos principais (planetas)
+    planet_targets = {
+        'Mercurio': {'id': '199', 'color': 0x8c8c8c, 'size': 0.015},
+        'Venus':    {'id': '299', 'color': 0xd8a868, 'size': 0.02},
+        'Terra':    {'id': '399', 'color': 0x00aaff, 'size': 0.022},
+        'Marte':    {'id': '499', 'color': 0xff5733, 'size': 0.018},
+        'Apophis':  {'id': 'Apophis;', 'color': 0xffffff, 'size': 0.01}, # Asteroide notável
+        'Jupiter':  {'id': '599', 'color': 0xc99039, 'size': 0.04},
+        'Saturno':  {'id': '699', 'color': 0xe3d9b1, 'size': 0.035},
+        'Urano':    {'id': '799', 'color': 0xa2e465, 'size': 0.03},
+        'Netuno':   {'id': '899', 'color': 0x3f54ba, 'size': 0.03},
+        'Plutao':   {'id': '999', 'color': 0xbfb5a6, 'size': 0.01},
+    }
+
+    # 2. Busca alvos de asteroides dinamicamente da API
+    asteroid_targets = get_asteroid_targets(limit=10)
+
+    # 3. Combina os alvos
+    all_targets = {**planet_targets, **asteroid_targets}
+
+    # --- EXECUÇÃO ---
+    trajectories_data = {}
+    for name, params in all_targets.items():
+        df = get_horizons_vectors(params['id'], start_date, end_date)
+        if df is not None and not df.is_empty():
+            trajectories_data[name] = {
+                "dataframe": df, "color": params['color'], "size": params['size']
+            }
+    
+    if trajectories_data:
+        plot_input = {name: data['dataframe'].with_columns(pl.lit(data['color']).alias('color'), pl.lit(data['size']).alias('size')) for name, data in trajectories_data.items()}
+        plot_orbits_3d_threejs(plot_input, output_file)
+    else:
+        print("\nNão foi possível gerar a simulação. Nenhum dado de trajetória foi obtido.")
