@@ -21,8 +21,8 @@ const Index = () => {
   const [formOpen, setFormOpen] = useState(false);
 
   const handleToggleFavorite = (designation: string) => {
-    // Por enquanto, apenas mostra toast - funcionalidade de favoritos será implementada depois
-    toast.success("Favorito atualizado!");
+    // For now, just show toast - favorite functionality will be implemented later
+    toast.success("Favorite updated!");
   };
 
   const handleViewDetails = (asteroid: CelestialBodyCloseApproachData) => {
@@ -54,20 +54,20 @@ const Index = () => {
               <div className="bg-primary/20 p-3 rounded-lg glow-primary">
                 <Satellite className="h-8 w-8 text-primary" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold gradient-text">AstroWatch</h1>
-                <p className="text-sm text-muted-foreground">
-                  Sistema de Monitoramento de Asteroides
-                </p>
-              </div>
+                  <div>
+                    <h1 className="text-3xl font-bold gradient-text">AstroWatch</h1>
+                    <p className="text-sm text-muted-foreground">
+                      Asteroid Monitoring System
+                    </p>
+                  </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => setFormOpen(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground glow-primary"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Asteroide
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Asteroid
               </Button>
             </div>
           </div>
@@ -75,12 +75,12 @@ const Index = () => {
           {/* Search Bar */}
           <div className="mt-6 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por designação do asteroide..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 bg-card/50 border-border/50 focus:border-primary h-12 text-base"
-            />
+                <Input
+                  placeholder="Search by asteroid designation..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 bg-card/50 border-border/50 focus:border-primary h-12 text-base"
+                />
           </div>
         </div>
       </header>
@@ -99,9 +99,9 @@ const Index = () => {
           {/* Asteroid Grid */}
           <main className="flex-1">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold">Todos os Asteroides</h2>
+              <h2 className="text-2xl font-bold">All Asteroids</h2>
               <p className="text-muted-foreground mt-1">
-                {filteredAsteroids.length} asteroide(s) encontrado(s)
+                {filteredAsteroids.length} asteroid(s) found
               </p>
             </div>
 
@@ -109,10 +109,10 @@ const Index = () => {
               <div className="text-center py-16">
                 <Satellite className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-xl font-semibold mb-2">
-                  Nenhum asteroide encontrado
+                  No asteroids found
                 </h3>
                 <p className="text-muted-foreground">
-                  Tente ajustar os filtros ou adicionar um novo asteroide
+                  Try adjusting the filters or adding a new asteroid
                 </p>
               </div>
             ) : (

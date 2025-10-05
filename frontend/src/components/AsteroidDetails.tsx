@@ -21,7 +21,7 @@ interface AsteroidDetailsProps {
   onToggleFavorite: (designation: string) => void;
 }
 
-// Função para calcular nível de ameaça baseado na distância
+// Function to calculate threat level based on distance
 const getThreatLevel = (
   distanceAu: string
 ): "safe" | "low" | "medium" | "high" | "critical" => {
@@ -42,11 +42,11 @@ const threatColors = {
 };
 
 const threatLabels = {
-  safe: "Seguro",
-  low: "Baixo",
-  medium: "Médio",
-  high: "Alto",
-  critical: "Crítico",
+  safe: "Safe",
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  critical: "Critical",
 };
 
 export const AsteroidDetails = ({
@@ -72,7 +72,7 @@ export const AsteroidDetails = ({
                   {asteroid.designation}
                 </DialogTitle>
                 <DialogDescription className="mt-2">
-                  Designação: {asteroid.designation}
+                  Designation: {asteroid.designation}
                 </DialogDescription>
               </div>
               <Button
@@ -94,7 +94,7 @@ export const AsteroidDetails = ({
                   threatColors[threatLevel]
                 )}
               >
-                Ameaça: {threatLabels[threatLevel]}
+                Threat: {threatLabels[threatLevel]}
               </Badge>
             </div>
 
@@ -104,7 +104,7 @@ export const AsteroidDetails = ({
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Gauge className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Velocidade</span>
+                  <span className="text-sm">Velocity</span>
                 </div>
                 <p className="text-2xl font-bold">
                   {asteroid.velocity_kms} km/s
@@ -114,7 +114,7 @@ export const AsteroidDetails = ({
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Distância Atual</span>
+                  <span className="text-sm">Current Distance</span>
                 </div>
                 <p className="text-2xl font-bold">{asteroid.distance_au} AU</p>
               </div>
@@ -125,16 +125,16 @@ export const AsteroidDetails = ({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Cronologia</span>
+                <span className="text-sm font-semibold">Timeline</span>
               </div>
               <div className="space-y-3 ml-6">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Próxima Aproximação à Terra
+                    Next Approach to Earth
                   </p>
                   <p className="font-semibold text-warning">
                     {new Date(asteroid.close_approach_date).toLocaleDateString(
-                      "pt-BR",
+                      "en-US",
                       {
                         day: "numeric",
                         month: "long",

@@ -89,17 +89,13 @@ export const ImpactSimulationCard = ({
 
               <div className="glass-card p-4 bg-accent/10 border-accent/30">
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>
-                    • Use the mouse to rotate, zoom, and move the camera
-                  </li>
+                  <li>• Use the mouse to rotate, zoom, and move the camera</li>
                   <li>• Click "Start" to begin the simulation</li>
                   <li>• The orange line shows the predicted trajectory</li>
                   <li>
                     • The asteroid moves along the trajectory until impact
                   </li>
-                  <li>
-                    • Use "Export Data" to save simulation information
-                  </li>
+                  <li>• Use "Export Data" to save simulation information</li>
                 </ul>
               </div>
             </div>

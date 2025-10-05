@@ -17,7 +17,7 @@ interface AsteroidCardProps {
   onViewDetails: (asteroid: CelestialBodyCloseApproachData) => void;
 }
 
-// Função para calcular nível de ameaça baseado na distância
+// Function to calculate threat level based on distance
 const getThreatLevel = (
   distanceAu: string
 ): "safe" | "low" | "medium" | "high" | "critical" => {
@@ -38,11 +38,11 @@ const threatColors = {
 };
 
 const threatLabels = {
-  safe: "Seguro",
-  low: "Baixo",
-  medium: "Médio",
-  high: "Alto",
-  critical: "Crítico",
+  safe: "Safe",
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  critical: "Critical",
 };
 
 export const AsteroidCard = ({
@@ -65,7 +65,7 @@ export const AsteroidCard = ({
               )}
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-1">
-              Designação: {asteroid.designation}
+              Designation: {asteroid.designation}
             </CardDescription>
           </div>
           <Button
@@ -81,22 +81,22 @@ export const AsteroidCard = ({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="space-y-1">
-            <p className="text-muted-foreground">Velocidade</p>
+            <p className="text-muted-foreground">Velocity</p>
             <p className="font-semibold text-foreground">
               {asteroid.velocity_kms} km/s
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-muted-foreground">Distância</p>
+            <p className="text-muted-foreground">Distance</p>
             <p className="font-semibold text-foreground">
               {asteroid.distance_au} AU
             </p>
           </div>
           <div className="space-y-1 col-span-2">
-            <p className="text-muted-foreground">Próx. Aproximação</p>
+            <p className="text-muted-foreground">Next Approach</p>
             <p className="font-semibold text-foreground">
               {new Date(asteroid.close_approach_date).toLocaleDateString(
-                "pt-BR"
+                "en-US"
               )}
             </p>
           </div>
@@ -114,7 +114,7 @@ export const AsteroidCard = ({
             className="border-primary/50 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
           >
             <Info className="h-4 w-4 mr-1" />
-            Ver Detalhes
+            View Details
           </Button>
         </div>
       </CardContent>

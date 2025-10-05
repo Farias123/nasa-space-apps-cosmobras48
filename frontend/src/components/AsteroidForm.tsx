@@ -34,15 +34,15 @@ export const AsteroidForm = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.designation ||
-      !formData.velocity_kms ||
-      !formData.distance_au ||
-      !formData.close_approach_date
-    ) {
-      toast.error("Preencha todos os campos obrigatórios");
-      return;
-    }
+        if (
+          !formData.designation ||
+          !formData.velocity_kms ||
+          !formData.distance_au ||
+          !formData.close_approach_date
+        ) {
+          toast.error("Please fill in all required fields");
+          return;
+        }
 
     const newAsteroid: CelestialBodyCloseApproachData = {
       designation: formData.designation,
@@ -51,34 +51,34 @@ export const AsteroidForm = ({
       close_approach_date: formData.close_approach_date,
     };
 
-    onSubmit(newAsteroid);
-    toast.success("Asteroide cadastrado com sucesso!");
-    setFormData({
-      designation: "",
-      velocity_kms: "",
-      distance_au: "",
-      close_approach_date: "",
-    });
-    onOpenChange(false);
+        onSubmit(newAsteroid);
+        toast.success("Asteroid registered successfully!");
+        setFormData({
+          designation: "",
+          velocity_kms: "",
+          distance_au: "",
+          close_approach_date: "",
+        });
+        onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card border-primary/30 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold gradient-text flex items-center gap-2">
-            <Rocket className="h-6 w-6" />
-            Cadastrar Novo Asteroide
-          </DialogTitle>
-          <DialogDescription>
-            Insira os dados do asteroide para iniciar o monitoramento
-          </DialogDescription>
+              <DialogTitle className="text-2xl font-bold gradient-text flex items-center gap-2">
+                <Rocket className="h-6 w-6" />
+                Register New Asteroid
+              </DialogTitle>
+              <DialogDescription>
+                Enter asteroid data to start monitoring
+              </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="designation">Designação do Asteroide *</Label>
+              <Label htmlFor="designation">Asteroid Designation *</Label>
               <Input
                 id="designation"
                 placeholder="Ex: Apophis"
@@ -91,7 +91,7 @@ export const AsteroidForm = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="velocity_kms">Velocidade (km/s) *</Label>
+              <Label htmlFor="velocity_kms">Velocity (km/s) *</Label>
               <Input
                 id="velocity_kms"
                 type="text"
@@ -105,7 +105,7 @@ export const AsteroidForm = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="distance_au">Distância (AU) *</Label>
+              <Label htmlFor="distance_au">Distance (AU) *</Label>
               <Input
                 id="distance_au"
                 type="text"
@@ -119,7 +119,7 @@ export const AsteroidForm = ({
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="close_approach_date">Data de Aproximação *</Label>
+              <Label htmlFor="close_approach_date">Approach Date *</Label>
               <Input
                 id="close_approach_date"
                 type="date"
@@ -142,14 +142,14 @@ export const AsteroidForm = ({
               onClick={() => onOpenChange(false)}
               className="flex-1 border-border/50"
             >
-              Cancelar
+                  Cancel
             </Button>
             <Button
               type="submit"
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Cadastrar Asteroide
+              Register Asteroid
             </Button>
           </div>
         </form>
