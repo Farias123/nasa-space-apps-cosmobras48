@@ -1,5 +1,6 @@
 from datetime import datetime
 from astroquery.jplhorizons import Horizons
+from astropy import units as u
 import requests
 import numpy as np
 
@@ -53,7 +54,7 @@ def request_data_horizons_solar_system(initial_date, end_date, step_size):
 
     data_planets = {
         "Sun": {"mass": 1_988_500e24, "radius": 695_700},
-        "meta": {"units": {"distance": "km", "mass": "kg", "velocity": "km/s"}}
+        "meta": {"units": {"radius": "km", "mass": "kg"}}
                     }
     for name_planet, id_planet in dict_planets.items():
         obj = request_data_horizons_existing_body(id_planet, center_body, initial_date, end_date, step_size)
@@ -63,12 +64,26 @@ def request_data_horizons_solar_system(initial_date, end_date, step_size):
         data_planets[name_planet] = {
             "mass": mass_planets[name_planet],
             "radius": radius_planets[name_planet],
-            "x": np.array(vec.columns["x"]),
-            "y": np.array(vec.columns["y"]),
-            "z": np.array(vec.columns["z"]),
-            "vx": np.array(vec.columns["vx"]),
-            "vy": np.array(vec.columns["vy"]),
-            "vz": np.array(vec.columns["vz"]),
+            "position_km": {
+                "x": np.array(vec.columns["x"].to(u.km)),
+                "y": np.array(vec.columns["y"].to(u.km)),
+                "z": np.array(vec.columns["z"].to(u.km))
+            },
+            "velocity_km_s": {
+                "vx": np.array(vec.columns["vx"].to(u.km / u.s)),
+                "vy": np.array(vec.columns["vy"].to(u.km / u.s)),
+                "vz": np.array(vec.columns["vz"].to(u.km / u.s))
+            },
+            "position_UA": {
+                "x": np.array(vec.columns["x"]),
+                "y": np.array(vec.columns["y"]),
+                "z": np.array(vec.columns["z"])
+            },
+            "velocity_UA_D": {
+                "vx": np.array(vec.columns["vx"]),
+                "vy": np.array(vec.columns["vy"]),
+                "vz": np.array(vec.columns["vz"])
+            },
             "dates": parsed_dates,
         }
 
@@ -168,3 +183,8 @@ def request_vectors_horizons_custom_body(start_time, stop_time, step_size, eccen
     else:
         print("Error:", response.status_code)
         return f"Error with request: {response.text}, errorcode: {response.status_code}"
+
+
+if __name__ == "__main__":
+    res = request_data_horizons_solar_system("2015-04-04","2025-04-04","1 d")
+    print()
