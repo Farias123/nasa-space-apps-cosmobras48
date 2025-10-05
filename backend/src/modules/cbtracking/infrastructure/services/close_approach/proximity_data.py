@@ -7,8 +7,11 @@ import requests
 from src.modules.cbtracking.infrastructure.services.close_approach.definitions import (
     API_URL,
     DEFAULT_FILTERS,
-    CelestialBodyCloseApproachObject,
+)
+
+from src.modules.cbtracking.infrastructure.services.close_approach.models import (
     CelestialBodyCloseApproachFilterParams,
+    CelestialBodyCloseApproachObject,
 )
 
 

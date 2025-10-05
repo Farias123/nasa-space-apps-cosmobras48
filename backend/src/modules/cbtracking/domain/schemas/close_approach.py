@@ -1,19 +1,7 @@
-from pydantic import BaseModel
 from src.core.fastapi.responses import create_data_model
-
-
-class CelestialBodyCloseApproachFilterSchema(BaseModel):
-    date_min: str | None
-    date_max: str | None
-    dist_max: float | None
-    sort: str | None
-
-
-class CelestialBodyCloseApproachDataSchema(BaseModel):
-    designation: str
-    close_approach_date: str
-    distance_au: str
-    velocity_kms: str
+from src.modules.cbtracking.infrastructure.services.close_approach.models import (
+    CelestialBodyCloseApproachDataSchema,
+)
 
 
 CelestialBodyCloseApproachDetail = create_data_model(
