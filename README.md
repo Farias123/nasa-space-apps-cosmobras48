@@ -123,6 +123,8 @@ $ make start c=backend                          # Inicia o container do backend
 
 > [!IMPORTANT]
 > A documentação da API RESTful pode ser acessada, via browser, em [`http://localhost:8001/api/docs`](http://localhost:8001/api/docs).
+>
+> Testes exploratório da API RESTful podem ser conduzidos, mediante uma _collection_ do Postman (arquivo JSON), disponível em [`./resources/testing`](./resources/testing/cosmobras-48-nasa-sac-api.postman_collection.json).
 > 
 > A interface de usuario em `frontend` está funcional, porém não integrada com a API RESTful servida por `backend`.
 
